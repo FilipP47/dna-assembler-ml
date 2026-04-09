@@ -6,7 +6,7 @@ pub fn build_de_bruijn_graph(reads: &[String], k: usize) -> HashMap<String, Hash
     let total_reads = reads.len();
     
     for (i, read) in reads.iter().enumerate() {
-
+        
         if i % 1000 == 0 && i > 0 {
             println!("  -> Przetwarzanie grafu: {} / {} odczytów ({:.1}%)", 
                 i, total_reads, (i as f64 / total_reads as f64) * 100.0);
@@ -107,18 +107,3 @@ pub fn assemble(path: &[String]) -> String {
 
     result
 }
-
-pub fn generate_reads(text: &str, read_length: usize, step: usize) -> Vec<String> {
-    let mut reads = Vec::new();
-    let chars: Vec<char> = text.chars().collect();
-    
-    let mut i = 0;
-    while i + read_length <= chars.len() {
-        let read: String = chars[i..i + read_length].iter().collect();
-        reads.push(read);
-        i += step;
-    }
-    
-    reads
-}
-
