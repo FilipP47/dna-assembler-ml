@@ -2,8 +2,14 @@ use std::collections::{HashMap, HashSet};
 
 pub fn build_de_bruijn_graph(reads: &[String], k: usize) -> HashMap<String, HashSet<String>> {
     let mut graph: HashMap<String, HashSet<String>> = HashMap::new();
+    let total_reads = reads.len();
+    
+    for (i, read) in reads.iter().enumerate() {
 
-    for read in reads {
+        if i % 1000 == 0 && i > 0 {
+            println!("  -> Przetwarzanie grafu: {} / {} odczytów ({:.1}%)", 
+                i, total_reads, (i as f64 / total_reads as f64) * 100.0);
+        }
         let chars: Vec<char> = read.chars().collect();
         
         if chars.len() < k {
