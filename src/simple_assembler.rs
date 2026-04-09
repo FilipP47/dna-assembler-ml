@@ -1,3 +1,4 @@
+use rand::seq::IteratorRandom;
 use std::collections::{HashMap, HashSet};
 
 pub fn build_de_bruijn_graph(reads: &[String], k: usize) -> HashMap<String, HashSet<String>> {
@@ -58,7 +59,8 @@ pub fn find_start_node(
         }
     }
 
-    graph.keys().next().cloned()
+    let mut rng = rand::thread_rng();
+    graph.keys().choose(&mut rng).cloned()
 }
 
 pub fn find_eulerian_path(
