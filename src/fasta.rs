@@ -25,3 +25,14 @@ pub fn save_to_fasta(filename: &str, header: &str, sequence: &str) -> std::io::R
     writeln!(file, "{}", sequence)?;
     Ok(())
 }
+
+pub fn save_contigs_to_fasta(filename: &str, contigs: &[String]) -> std::io::Result<()> {
+    let mut file = File::create(filename)?;
+
+    for (index, contig) in contigs.iter().enumerate() {
+        writeln!(file, ">contig_{}", index + 1)?;
+        writeln!(file, "{}", contig)?;
+    }
+
+    Ok(())
+}

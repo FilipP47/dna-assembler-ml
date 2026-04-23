@@ -1,4 +1,3 @@
-use rand::seq::IteratorRandom;
 use std::collections::{HashMap, HashSet};
 
 pub fn build_de_bruijn_graph(reads: &[String], k: usize) -> HashMap<String, HashSet<String>> {
@@ -8,7 +7,7 @@ pub fn build_de_bruijn_graph(reads: &[String], k: usize) -> HashMap<String, Hash
     for (i, read) in reads.iter().enumerate() {
         
         if i % 1000 == 0 && i > 0 {
-            println!("  -> Przetwarzanie grafu: {} / {} odczytów ({:.1}%)", 
+            println!("  -> Przetwarzanie grafu: {} / {} odczytów ({:.1}%)",
                 i, total_reads, (i as f64 / total_reads as f64) * 100.0);
         }
         let chars: Vec<char> = read.chars().collect();
@@ -45,52 +44,114 @@ pub fn get_degrees(
     (in_degree, out_degree)
 }
 
-pub fn find_start_node(
-    graph: &HashMap<String, HashSet<String>>,
+fn is_1_in_1_out(
+    node: &str,
     in_degree: &HashMap<String, usize>,
     out_degree: &HashMap<String, usize>,
-) -> Option<String> {
-    for node in out_degree.keys() {
-        let out_deg = out_degree.get(node).unwrap_or(&0);
-        let in_deg = in_degree.get(node).unwrap_or(&0);
-
-        if *out_deg > *in_deg && (*out_deg - *in_deg) == 1 {
-            return Some(node.clone());
-        }
-    }
-
-    let mut rng = rand::thread_rng();
-    graph.keys().choose(&mut rng).cloned()
+) -> bool {
+    in_degree.get(node).copied().unwrap_or(0) == 1
+        && out_degree.get(node).copied().unwrap_or(0) == 1
 }
 
-pub fn find_eulerian_path(
-    graph: &HashMap<String, HashSet<String>>,
-    start_node: String,
+fn sorted_neighbors(graph: &HashMap<String, HashSet<String>>, node: &str) -> Vec<String> {
+    let mut neighbors: Vec<String> = graph
+        .get(node)
+        .map(|items| items.iter().cloned().collect())
+        .unwrap_or_default();
+    neighbors.sort();
+    neighbors
+}
+
+fn extend_unitig(
+    working_graph: &mut HashMap<String, Vec<String>>,
+    in_degree: &HashMap<String, usize>,
+    out_degree: &HashMap<String, usize>,
+    start: String,
+    next: String,
+    stop_at_start: bool,
 ) -> Vec<String> {
-    let mut working_graph: HashMap<String, Vec<String>> = HashMap::new();
-    for (node, neighbors) in graph {
-        working_graph.insert(node.clone(), neighbors.iter().cloned().collect());
-    }
+    let mut path: Vec<String> = vec![start.clone(), next.clone()];
+    let cycle_start = start;
+    let mut current = next;
 
-    let mut stack: Vec<String> = vec![start_node];
-    let mut path: Vec<String> = Vec::new();
+    loop {
+        if stop_at_start && current == cycle_start {
+            break;
+        }
 
-    while let Some(current) = stack.last() {
-        let has_neighbors = working_graph
-            .get(current)
-            .map(|neighbors| !neighbors.is_empty())
-            .unwrap_or(false);
+        if !is_1_in_1_out(&current, in_degree, out_degree) {
+            break;
+        }
 
-        if has_neighbors {
-            let next_node = working_graph.get_mut(current).unwrap().pop().unwrap();
-            stack.push(next_node);
+        let next_node = if let Some(neighbors) = working_graph.get_mut(&current) {
+            neighbors.pop()
         } else {
-            path.push(stack.pop().unwrap());
+            None
+        };
+
+        if let Some(next_node) = next_node {
+            path.push(next_node.clone());
+            current = next_node;
+        } else {
+            break;
         }
     }
 
-    path.reverse();
     path
+}
+
+pub fn extract_contig_paths(graph: &HashMap<String, HashSet<String>>) -> Vec<Vec<String>> {
+    let (in_degree, out_degree) = get_degrees(graph);
+    let mut contigs: Vec<Vec<String>> = Vec::new();
+
+    let mut working_graph: HashMap<String, Vec<String>> = HashMap::new();
+    for (node, neighbors) in graph {
+        let mut sorted_neighbors: Vec<String> = neighbors.iter().cloned().collect();
+        sorted_neighbors.sort_by(|a, b| b.cmp(a)); 
+        working_graph.insert(node.clone(), sorted_neighbors);
+    }
+
+    let mut start_nodes: Vec<String> = graph.keys()
+        .filter(|node| {
+            out_degree.get(*node).copied().unwrap_or(0) > 0
+                && !is_1_in_1_out(node, &in_degree, &out_degree)
+        })
+        .cloned()
+        .collect();
+    start_nodes.sort();
+
+    for start in start_nodes {
+        while let Some(next) = working_graph.get_mut(&start).and_then(|n| n.pop()) {
+            let contig = extend_unitig(
+                &mut working_graph,
+                &in_degree,
+                &out_degree,
+                start.clone(),
+                next,
+                false,
+            );
+            contigs.push(contig);
+        }
+    }
+
+    let mut all_nodes: Vec<String> = graph.keys().cloned().collect();
+    all_nodes.sort();
+
+    for start in all_nodes {
+        while let Some(next) = working_graph.get_mut(&start).and_then(|n| n.pop()) {
+            let contig = extend_unitig(
+                &mut working_graph,
+                &in_degree,
+                &out_degree,
+                start.clone(),
+                next,
+                true,
+            );
+            contigs.push(contig);
+        }
+    }
+
+    contigs
 }
 
 pub fn assemble(path: &[String]) -> String {
@@ -106,4 +167,8 @@ pub fn assemble(path: &[String]) -> String {
     }
 
     result
+}
+
+pub fn assemble_contigs(paths: &[Vec<String>]) -> Vec<String> {
+    paths.iter().map(|path| assemble(path)).collect()
 }

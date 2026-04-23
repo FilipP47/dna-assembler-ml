@@ -2,7 +2,7 @@ mod simple_assembler;
 mod reads;
 mod fasta;
 
-use fasta::{read_fasta, save_to_fasta};
+use fasta::{read_fasta, save_contigs_to_fasta};
 use std::time::Instant;
 
 
@@ -49,32 +49,28 @@ fn main() {
     }
     println!("Graf zbudowany w {:?}. Węzły: {}", start_time.elapsed(), graf.len());
 
-    let (in_deg, out_deg) = simple_assembler::get_degrees(&graf);
-    let start_node = match simple_assembler::find_start_node(&graf, &in_deg, &out_deg) {
-        Some(node) => node,
-        None => {
-            println!("BŁĄD: Nie znaleziono wierzchołka startowego.");
-            return;
-        }
-    };
-    
-    println!("\nSzukanie ścieżki Eulera...");
+    println!("\nSzukanie kontigów unitig...");
     let start_time = Instant::now();
-    let sciezka = simple_assembler::find_eulerian_path(&graf, start_node.clone());
-    let wynik = simple_assembler::assemble(&sciezka);
-    println!("Ścieżka znaleziona w {:?}", start_time.elapsed());
+    let sciezki_kontigow = simple_assembler::extract_contig_paths(&graf);
+    let kontigi = simple_assembler::assemble_contigs(&sciezki_kontigow);
+    println!("Znaleziono {} kontigów w {:?}", kontigi.len(), start_time.elapsed());
+
+    for (index, kontig) in kontigi.iter().enumerate() {
+        println!("  - kontig_{}: {} bp", index + 1, kontig.len());
+    }
 
     let output_filename = format!(
-        "zlozony_genom_odczyt{}_cov{}_k{}.fasta", 
-        read_length, 
-        coverage, 
+        "zlozony_genom_odczyt{}_cov{}_k{}_kontigi.fasta", 
+        read_length,
+        coverage,
         k
     );
-    println!("\nZapisywanie wyniku do pliku: {}", output_filename);
+    println!("\nZapisywanie kontigów do pliku: {}", output_filename);
     
-    match save_to_fasta(&output_filename, "moj_zlozony_kontig", &wynik) {
+    match save_contigs_to_fasta(&output_filename, &kontigi) {
         Ok(_) => {
-            println!("SUKCES! Złożona sekwencja (długość: {} bp, realna długość: {} bp) została zapisana.", oryginal.len(), wynik.len());
+            let total_length: usize = kontigi.iter().map(|contig| contig.len()).sum();
+            println!("SUKCES! Zapisano {} kontigów o łącznej długości {} bp.", kontigi.len(), total_length);
         }
         Err(e) => {
             println!("BŁĄD przy zapisywaniu pliku: {}", e);
