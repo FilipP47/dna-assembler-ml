@@ -1,4 +1,52 @@
-/target
-busco_downloads
-wynik*
+# Rust
+/target/
+Cargo.lock
+
+# Python
+ml/.venv/
+ml/venv/
+ml/__pycache__/
+ml/**/__pycache__/
+ml/**/*.pyc
+ml/**/*.pyo
+ml/.pytest_cache/
+ml/.mypy_cache/
+ml/.ruff_cache/
+*.egg-info/
+
+# Jupyter
+ml/**/.ipynb_checkpoints/
+ml/experiments/.ipynb_checkpoints/
+
+# mkdocs
+/site/
+
+# Assembly results and generated datasets
+results/
+data/training/
+
+# ML artefacts
+ml/checkpoints/
+*.onnx
+*.pt
+wandb/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data — large files tracked separately
 *.fasta
+*.fa
+*.fna
+*.fastq
+*.fq
+
+# Misc
+run.sh
