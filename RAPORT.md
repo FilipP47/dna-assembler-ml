@@ -6,7 +6,7 @@ Projekt implementuje asembler DNA oparty na **grafie de Bruijn** napisany w jęz
 
 ### Algorytm asemblacji
 
-1. **Budowanie grafu de Bruijn**: każdy odczyt jest dzielony na k-mery długości *k*. Wierzchołki grafu to (*k*−1)-mery, krawędzie reprezentują k-mery. Waga krawędzi = liczba odczytów potwierdzających dane przejście (pokrycie).
+1. **Budowanie grafu de Bruijn**: każdy odczyt jest dzielony na k-mery długości *k*. Wierzchołki grafu to (*k*−1)-mery, krawędzie reprezentują k-mery.
 2. **Traversal grafu**: asembler przechodzi graf zachłannie, wydłużając kontig dopóki wychodzi dokładnie jedna krawędź z węzła. W **węźle rozejścia** (out-degree ≥ 2) kontig jest kończony. ML ma tutaj pomóc łączyć te contigi, zamiast za każdym razem je ciąć.
 3. **Wyjście**: kontigi zapisywane w formacie FASTA.
 
@@ -16,7 +16,7 @@ Eksperyment: te same **928 331 bezbłędnych odczytów** (długość 150 bp, pok
 
 | Metryka | **Nasz asembler** | **dnaasm** |
 |---|---|---|
-| Liczba kontigów (≥ 500 bp) | 801 | 687 |
+| Liczba kontigów (≥ 500 bp) | 798 | 687 |
 | Sumaryczna długość | 4 419 383 bp | 9 010 347 bp |
 | Największy kontig | 138 202 bp | 127 976 bp |
 | **N50** | **12 307 bp** | 23 402 bp* |
@@ -28,7 +28,24 @@ Eksperyment: te same **928 331 bezbłędnych odczytów** (długość 150 bp, pok
 
 \*Pozornie lepsze wyniki dnaasm wynikają ze współczynnika duplikacji ~2,0: dnaasm przetwarza domyślnie obie nici DNA, produkując każdy kontig dwukrotnie. Po uwzględnieniu duplikacji oba asemblery rekonstruują porównywalną część genomu.
 
-**Wnioski:** Nasz asembler poprawnie rekonstruuje bezbłędne odczyty (brak błędnych złożeń, niezgodności i duplikacji). Pokrycie genomu 94,9% wynika z nieciągłości w węzłach rozejścia (skrzyżowania), które są celowo pozostawione jako miejsca interwencji modelu ML.
+**Wnioski:** Nasz asembler poprawnie rekonstruuje bezbłędne odczyty (brak błędnych złożeń, niezgodności i duplikacji). Pokrycie genomu 95,0% wynika z nieciągłości w węzłach rozejścia, które są celowo pozostawione jako miejsca interwencji modelu ML.
+
+### Analiza rozkładu długości kontigów
+
+Wyższa liczba kontigów naszego asemblera (798 vs ~344 unikalne dnaasm) wynika z dużej liczby **bardzo krótkich kontigów** powstających między gęsto upakowanymi węzłami rozejścia:
+
+| Przedział długości | Liczba kontigów |
+|---|---|
+| < 65 bp | 4 395 |
+| 65 – 499 bp | 1 005 |
+| 500 – 999 bp | 173 |
+| 1 000 – 9 999 bp | 509 |
+| ≥ 10 000 bp | 116 |
+| **Razem** | **6 198** |
+
+Mediana długości kontiga to zaledwie **39 bp**. Gdy dwa węzły rozejścia leżą w genomie blisko siebie (odległość < ~65 bp), ścieżka między nimi daje miniaturowy kontig. QUAST ignoruje alignmenty krótsze niż 65 bp przy obliczaniu pokrycia genomu — stąd brakujące 5%. Są to obszary gęstych powtórzeń genomowych, gdzie skrzyżowania następują jedno po drugim.
+
+dnaasm osiąga 97% pokrycia, bo uruchamia korekcję błędów grafu, która usuwa słabe krawędzie i scala krótkie ścieżki z dłuższymi sąsiadami. Nasz asembler świadomie pomija ten etap, ponieważ krótkie kontigi między węzłami rozejścia są potencjalnymi miejscami interwencji modelu ML.
 
 ## 3. Koncepcja rozwiązania z ML
 
