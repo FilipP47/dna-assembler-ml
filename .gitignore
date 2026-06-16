@@ -50,3 +50,5 @@ Thumbs.db
 
 # Misc
 run.sh
+
+tmp*
