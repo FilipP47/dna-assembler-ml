@@ -36,7 +36,7 @@ impl AnalysisOptions {
         }
     }
 
-    /// Disable everything — useful as a starting point for selective enabling.
+    /// Disable everything - useful as a starting point for selective enabling.
     pub fn none() -> Self {
         Self {
             coverage: false,

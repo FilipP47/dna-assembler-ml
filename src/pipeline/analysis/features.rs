@@ -1,9 +1,9 @@
 //! Data structures describing a single junction in the de Bruijn graph.
 //!
-//! `JunctionContext`  — everything the assembler knows at the moment it reaches
+//! `JunctionContext`  - everything the assembler knows at the moment it reaches
 //!                      a branching node.  Passed to `JunctionAnalyzer::analyze`.
 //!
-//! `JunctionFeatures` — the computed feature vector ready for ML export.
+//! `JunctionFeatures` - the computed feature vector ready for ML export.
 //!                      Fields are `Option<…>` so the collector can populate
 //!                      only those enabled by `AnalysisOptions`.
 
@@ -57,12 +57,12 @@ impl JunctionContext {
     }
 }
 
-/// Feature vector for one junction — the ML model's input at inference time.
+/// Feature vector for one junction - the ML model's input at inference time.
 ///
 /// Fields are `Option<>` so absent features are explicit, not zero-filled.
 #[derive(Debug, Clone, Default)]
 pub struct JunctionFeatures {
-    /// Coverage of each outgoing branch (indices 0-3 → A/C/G/T).
+    /// Coverage of each outgoing branch (indices 0-3 -> A/C/G/T).
     pub branch_coverage: Option<[Option<u32>; 4]>,
 
     /// Ratio of max-branch to total coverage at this junction.

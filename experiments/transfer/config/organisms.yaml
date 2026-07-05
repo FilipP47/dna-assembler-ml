@@ -1,0 +1,38 @@
+organisms:
+  ecoli:
+    csv: data/training/ecoli_training.csv
+    label: E. coli K-12
+    gc_content: 50.8
+    genome_size_mbp: 4.6
+  cerevisiae:
+    csv: data/training/cerevisiae_training.csv
+    label: S. cerevisiae
+    gc_content: 38.0
+    genome_size_mbp: 12.1
+  bsubtilis:
+    csv: data/training/bsubtilis_training.csv
+    label: B. subtilis 168
+    gc_content: 43.5
+    genome_size_mbp: 4.2
+  mtuberculosis:
+    csv: data/training/mtuberculosis_training.csv
+    label: M. tuberculosis
+    gc_content: 65.6
+    genome_size_mbp: 4.4
+  hpylori:
+    csv: data/training/hpylori_training.csv
+    label: H. pylori
+    gc_content: 38.9
+    genome_size_mbp: 1.7
+
+training:
+  epochs: 50
+  batch_size: 64
+  lr_solo: 1.0e-3
+  lr_finetune: 2.0e-4
+  early_stop: 10
+  seed: 42
+  augment: true
+  val_split: 0.15
+  embed_dim: 64
+  hidden_dim: 64

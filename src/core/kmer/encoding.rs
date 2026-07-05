@@ -42,11 +42,11 @@ fn unpack_u64(val: u64, len: usize) -> String {
 /// Compact 2-bit encoding for a DNA sequence up to 64 bases.
 ///
 /// Memory layout (24 bytes, 8-byte aligned):
-///   lo:  u64  — bases 0–31
-///   hi:  u64  — bases 32–63 (zero if len ≤ 32)
-///   len: NonZeroU8 — sequence length (enables `Option<DnaKey>` niche, zero overhead)
+///   lo:  u64  - bases 0–31
+///   hi:  u64  - bases 32–63 (zero if len ≤ 32)
+///   len: NonZeroU8 - sequence length (enables `Option<DnaKey>` niche, zero overhead)
 ///
-/// `Option<DnaKey>` is the same size as `DnaKey` — no extra byte for discriminant.
+/// `Option<DnaKey>` is the same size as `DnaKey` - no extra byte for discriminant.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DnaKey {
     lo:  u64,
@@ -55,7 +55,7 @@ pub struct DnaKey {
 }
 
 /// Type alias for a k-mer key (an edge in the de Bruijn graph).
-// One encoding, two semantic roles — the compiler sees one type; we see intent.
+// One encoding, two semantic roles - the compiler sees one type; we see intent.
 pub type KmerKey = DnaKey;
 
 /// Type alias for a node identifier ((k-1)-mer) in the de Bruijn graph.
@@ -99,28 +99,28 @@ impl DnaKey {
     /// Length of the encoded sequence in bases.
     pub fn len(&self) -> usize { self.len.get() as usize }
 
-    /// First (len-1) bases → source NodeId of this edge.
+    /// First (len-1) bases -> source NodeId of this edge.
     ///
-    /// Decode + re-encode — called only at graph-build time (not hot path).
+    /// Decode + re-encode - called only at graph-build time (not hot path).
     pub fn prefix_node(&self) -> NodeId {
         let n = self.len.get() as usize;
         let s = self.decode();
         DnaKey::encode(&s.as_bytes()[..n - 1])
     }
 
-    /// Last (len-1) bases → destination NodeId of this edge.
+    /// Last (len-1) bases -> destination NodeId of this edge.
     pub fn suffix_node(&self) -> NodeId {
         let s = self.decode();
         let n = self.len.get() as usize;
         DnaKey::encode(&s.as_bytes()[1..n])
     }
 
-    /// Index (0–3) of the last nucleotide — used to index into `node.out_edges`.
+    /// Index (0–3) of the last nucleotide - used to index into `node.out_edges`.
     pub fn last_base_idx(&self) -> usize {
         (self.lo & 0b11) as usize       // last 2 bits of lo always = last base
     }
 
-    /// Index (0–3) of the first nucleotide — used to index into `node.in_edges`.
+    /// Index (0–3) of the first nucleotide - used to index into `node.in_edges`.
     pub fn first_base_idx(&self) -> usize {
         let n = self.len.get() as usize;
         if n <= 32 {

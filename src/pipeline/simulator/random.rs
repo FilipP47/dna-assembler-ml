@@ -11,7 +11,7 @@
 //! The PRNG seed is fixed by `SimulatorConfig::seed`, making every run
 //! with the same parameters fully reproducible.
 //!
-//! ## Assumptions (Stage 1 — no error model)
+//! ## Assumptions (Stage 1 - no error model)
 //! • Reads are exact substrings of the reference (zero sequencing errors).
 //! • Read length is constant (variable-length support deferred to Stage 2).
 //! • Only the forward strand is sampled (reverse-complement deferred).
@@ -87,7 +87,7 @@ impl ReadSimulator for RandomReadSimulator {
         }
 
         println!(
-            "Simulated {} reads × {} bp  →  {:.1}× coverage  (seed={})",
+            "Simulated {} reads × {} bp  ->  {:.1}× coverage  (seed={})",
             num_reads,
             self.read_length,
             (num_reads * self.read_length) as f64 / genome_len as f64,

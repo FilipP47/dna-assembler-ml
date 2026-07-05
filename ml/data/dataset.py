@@ -64,9 +64,9 @@ def coverage_features(row: dict) -> torch.Tensor:
 
     Features (in order):
 
-    1. ``cov_ratio_max`` — dominant-branch coverage ratio.
-    2. ``total_reads`` — log-normalised total read count.
-    3. ``branch_{A,C,G,T}_cov`` — log-normalised per-branch coverage (4 values).
+    1. ``cov_ratio_max`` - dominant-branch coverage ratio.
+    2. ``total_reads`` - log-normalised total read count.
+    3. ``branch_{A,C,G,T}_cov`` - log-normalised per-branch coverage (4 values).
 
     Args:
         row: A dictionary produced by ``pl.DataFrame.iter_rows(named=True)``.

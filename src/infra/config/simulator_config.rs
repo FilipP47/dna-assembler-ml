@@ -1,6 +1,6 @@
 //! Configuration for the read simulator.
 //!
-//! Built via `SimulatorConfig::builder()` — all fields have sensible defaults
+//! Built via `SimulatorConfig::builder()` - all fields have sensible defaults
 //! so callers only need to set what they care about.
 
 use std::path::PathBuf;
@@ -19,7 +19,7 @@ pub struct SimulatorConfig {
     /// `num_reads = (genome_length × coverage) / read_length`
     pub coverage: usize,
 
-    /// PRNG seed — fixes the random start positions for reproducibility.
+    /// PRNG seed - fixes the random start positions for reproducibility.
     pub seed: u64,
 
     /// Where to write the simulated reads (FASTA format).

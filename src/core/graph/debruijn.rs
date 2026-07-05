@@ -2,19 +2,19 @@
 //!
 //! ## Building
 //! For every read, slide a window of width k and insert each k-mer:
-//!   • New k-mer → create edge + update source/destination nodes.
-//!   • Seen k-mer → increment coverage on the existing edge (no duplicates).
+//!   • New k-mer -> create edge + update source/destination nodes.
+//!   • Seen k-mer -> increment coverage on the existing edge (no duplicates).
 //!
 //! ## Traversal
 //! Greedy contig extraction (two passes):
-//!   Pass 1 — Start from every node where `in_degree ≠ 1` (sources,
+//!   Pass 1 - Start from every node where `in_degree ≠ 1` (sources,
 //!             convergence points, and the split side of a junction).
 //!             For each unvisited outgoing edge, walk forward appending
 //!             the last base of each k-mer until:
-//!               - dead end   (out_degree == 0) → end of contig
-//!               - junction   (out_degree  > 1) → cut contig here
+//!               - dead end   (out_degree == 0) -> end of contig
+//!               - junction   (out_degree  > 1) -> cut contig here
 //!               - cycle      (edge already visited)
-//!   Pass 2 — Pick up any edges still unvisited (pure cycles).
+//!   Pass 2 - Pick up any edges still unvisited (pure cycles).
 
 use std::collections::{HashMap, HashSet};
 use anyhow::Result;
@@ -47,8 +47,7 @@ impl DeBruijnGraph {
     /// Build the de Bruijn graph from a slice of DNA reads.
     ///
     /// Reads shorter than `k` are silently skipped.
-    /// 'N' bases in reads will cause a panic in `KmerKey::encode`;
-    /// filter them out beforehand if your reads may contain them.
+    /// K-mer windows containing non-ACGT bases (e.g. 'N') are silently skipped.
     pub fn build(reads: &[DnaRead], k: usize) -> Result<Self> {
         anyhow::ensure!(k >= 2, "k must be at least 2");
 
@@ -65,7 +64,11 @@ impl DeBruijnGraph {
             }
 
             for i in 0..=(seq.len() - k) {
-                graph.insert_kmer(&seq[i..i + k]);
+                let window = &seq[i..i + k];
+                if window.iter().any(|&b| !matches!(b, b'A'|b'a'|b'C'|b'c'|b'G'|b'g'|b'T'|b't')) {
+                    continue;
+                }
+                graph.insert_kmer(window);
             }
         }
 

@@ -52,6 +52,7 @@ class Trainer:
         use_wandb:      bool  = False,
         wandb_project:  str   = "dna-assembler-ml",
         wandb_config:   Optional[dict] = None,
+        run_name:       Optional[str] = None,
     ):
         """Initialise the trainer, optimiser, scheduler, and optional W&B run.
 
@@ -76,6 +77,7 @@ class Trainer:
         self.grad_clip = grad_clip
         self.early_stop_patience = early_stop
         self.use_wandb = use_wandb
+        self.run_name  = run_name
 
         if device is None:
             device = "cuda" if torch.cuda.is_available() else \
@@ -126,7 +128,7 @@ class Trainer:
             wandb.watch(self.model, log="gradients", log_freq=50)
             logger.info("Weights & Biases run: %s", wandb.run.url)
         except ImportError:
-            logger.warning("wandb not installed — disabling W&B logging")
+            logger.warning("wandb not installed - disabling W&B logging")
             self.use_wandb = False
 
     def _wandb_log(self, epoch: int, train: EpochMetrics, val: EpochMetrics, lr: float) -> None:
@@ -304,7 +306,8 @@ class Trainer:
             Path to the saved checkpoint file.
         """
         self.ckpt_dir.mkdir(parents=True, exist_ok=True)
-        path = self.ckpt_dir / f"{self.model.model_name()}_best.pt"
+        stem = f"{self.model.model_name()}_{self.run_name}" if self.run_name else self.model.model_name()
+        path = self.ckpt_dir / f"{stem}_best.pt"
         self.model.save_checkpoint(path, extra={
             "epoch": epoch,
             "val_junction_accuracy": metrics.junction_accuracy,

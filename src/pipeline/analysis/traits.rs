@@ -1,4 +1,4 @@
-//! `JunctionAnalyzer` — strategy interface for collecting junction data.
+//! `JunctionAnalyzer` - strategy interface for collecting junction data.
 //!
 //! The assembler calls `analyze` every time it reaches a branching node.
 //! Implementations decide what to record and how to store it.

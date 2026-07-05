@@ -42,13 +42,13 @@ impl SimpleAssembler {
         for c in &contigs {
             write!(w, "{}", c.to_fasta_record(60))?;
         }
-        println!("Contigs written → {}", fasta_path.display());
+        println!("Contigs written -> {}", fasta_path.display());
 
         if let Some(ref a) = analyzer {
             if a.junction_count() > 0 {
                 let csv = output_dir.join("junctions.csv");
                 a.export(&csv)?;
-                println!("Junctions ({}) → {}", a.junction_count(), csv.display());
+                println!("Junctions ({}) -> {}", a.junction_count(), csv.display());
             }
         }
 
