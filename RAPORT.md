@@ -43,7 +43,7 @@ Wyższa liczba kontigów naszego asemblera (798 vs ~344 unikalne dnaasm) wynika 
 | ≥ 10 000 bp | 116 |
 | **Razem** | **6 198** |
 
-Mediana długości kontiga to zaledwie **39 bp**. Gdy dwa węzły rozejścia leżą w genomie blisko siebie (odległość < ~65 bp), ścieżka między nimi daje miniaturowy kontig. QUAST ignoruje alignmenty krótsze niż 65 bp przy obliczaniu pokrycia genomu — stąd brakujące 5%. Są to obszary gęstych powtórzeń genomowych, gdzie skrzyżowania następują jedno po drugim.
+Mediana długości kontiga to zaledwie **39 bp**. Gdy dwa węzły rozejścia leżą w genomie blisko siebie (odległość < ~65 bp), ścieżka między nimi daje miniaturowy kontig. QUAST ignoruje alignmenty krótsze niż 65 bp przy obliczaniu pokrycia genomu - stąd brakujące 5%. Są to obszary gęstych powtórzeń genomowych, gdzie skrzyżowania następują jedno po drugim.
 
 dnaasm osiąga 97% pokrycia, bo uruchamia korekcję błędów grafu, która usuwa słabe krawędzie i scala krótkie ścieżki z dłuższymi sąsiadami. Nasz asembler świadomie pomija ten etap, ponieważ krótkie kontigi między węzłami rozejścia są potencjalnymi miejscami interwencji modelu ML.
 
@@ -160,9 +160,9 @@ Drożdże (*S. cerevisiae*) dostarczyły ponad czterokrotnie więcej skrzyżowa�
 ### Augmentacja danych
 Każda próbka jest rozszerzana na dwa niezależne sposoby:
 
-1. **Zamiana pozycji A/B** — ta sama para `(context, correct, wrong)` pojawia się raz z `label=0` (correct na pozycji A) i raz z `label=1` (correct na pozycji B). Zapobiega to biasowi pozycji — model uczy się oceniać sekwencje relatywnie, a nie "zawsze wybieraj A".
+1. **Zamiana pozycji A/B** - ta sama para `(context, correct, wrong)` pojawia się raz z `label=0` (correct na pozycji A) i raz z `label=1` (correct na pozycji B). Zapobiega to biasowi pozycji - model uczy się oceniać sekwencje relatywnie, a nie "zawsze wybieraj A".
 
-2. **Reverse complement** — sekwencja DNA ma dwie nici; RC `(ctx, correct, wrong)` to taka sama informacja biologiczna, tylko czytana od drugiego końca.
+2. **Reverse complement** - sekwencja DNA ma dwie nici; RC `(ctx, correct, wrong)` to taka sama informacja biologiczna, tylko czytana od drugiego końca.
 
 Oba zabiegi są niezależne, więc każde skrzyżowanie daje 4 pary (1 oryginał × 2 pozycje × 2 nici), co **czterokrotnie** zwiększa rozmiar zbioru treningowego.
 
@@ -188,12 +188,12 @@ Po augmentacji łączny zbiór treningowy dla próbek Drożdże (S. cerevisiae) 
 
 | Pojęcie | Znaczenie |
 |---|---|
-| **odczyt** (*read*) | Krótki fragment DNA odczytany przez sekwenator (tu: 150 bp). Sekwenator nie czyta całego genomu naraz — wytwarza miliony takich fragmentów. |
+| **odczyt** (*read*) | Krótki fragment DNA odczytany przez sekwenator (tu: 150 bp). Sekwenator nie czyta całego genomu naraz - wytwarza miliony takich fragmentów. |
 | **kontig** (*contig*) | Ciągły fragment genomu zrekonstruowany przez asembler przez składanie nakładających się odczytów. Im dłuższy i mniej liczny, tym lepsza asemblacja. |
-| **k-mer** | Podciąg odczytu o długości *k*. Graf de Bruijn jest zbudowany z k-merów — każdy odczyt rozkłada się na wiele nakładających się k-merów. |
+| **k-mer** | Podciąg odczytu o długości *k*. Graf de Bruijn jest zbudowany z k-merów - każdy odczyt rozkłada się na wiele nakładających się k-merów. |
 | **węzeł rozejścia** (*junction*) | Miejsce w grafie de Bruijn, gdzie contig mógłby iść w kilku kierunkach (out-degree ≥ 2). Asembler musi zdecydować którą gałąź wybrać, albo przerwać contig. |
-| **ground truth** | Poprawna odpowiedź dla danego węzła rozejścia, wyznaczona automatycznie przez wyszukanie sekwencji kontekstu w genomie referencyjnym. Jeśli kontekst pojawia się w genomie tylko raz — wiadomo jaki nukleotyd następuje po nim, więc ground truth jest znany. |
-| **ambiguous** | Węzeł rozejścia, dla którego **nie można wyznaczyć ground truth** — sekwencja kontekstu pojawia się w genomie wielokrotnie, po różnych nukleotydach. Takie skrzyżowania są odrzucane z treningu, bo nie wiadomo jaka jest prawidłowa odpowiedź. |
+| **ground truth** | Poprawna odpowiedź dla danego węzła rozejścia, wyznaczona automatycznie przez wyszukanie sekwencji kontekstu w genomie referencyjnym. Jeśli kontekst pojawia się w genomie tylko raz - wiadomo jaki nukleotyd następuje po nim, więc ground truth jest znany. |
+| **ambiguous** | Węzeł rozejścia, dla którego **nie można wyznaczyć ground truth** - sekwencja kontekstu pojawia się w genomie wielokrotnie, po różnych nukleotydach. Takie skrzyżowania są odrzucane z treningu, bo nie wiadomo jaka jest prawidłowa odpowiedź. |
 | **labeled** | Węzeł rozejścia z *poznanym* ground truth (przeciwieństwo *ambiguous*). Tylko te próbki trafiają do treningu. |
 | **baseline** | Prosta heurystyka bez ML: wybieraj zawsze gałąź o wyższym pokryciu odczytów. Stanowi punkt odniesienia dla modelu. |
 | **reverse complement (RC)** | Komplementarna nić DNA czytana od końca do początku. Ponieważ DNA jest dwuniciowe, każda sekwencja `ACGT...` ma swoje RC `...ACGT`, które koduje tę samą informację biologiczną z drugiej strony. |

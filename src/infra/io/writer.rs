@@ -1,4 +1,4 @@
-//! `ReadWriter` — the write-side counterpart of `ReadParser`.
+//! `ReadWriter` - the write-side counterpart of `ReadParser`.
 //!
 //! Implemented by format-specific writers (FASTA, FASTQ, …).
 

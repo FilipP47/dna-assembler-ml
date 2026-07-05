@@ -2,9 +2,9 @@
 
 Available sub-commands:
 
-- ``train``    — train the Siamese CNN on junction data from the Rust pipeline.
-- ``export``   — export a trained checkpoint to ONNX for inference in Rust.
-- ``evaluate`` — evaluate on a held-out test set (not yet implemented).
+- ``train``    - train the Siamese CNN on junction data from the Rust pipeline.
+- ``export``   - export a trained checkpoint to ONNX for inference in Rust.
+- ``evaluate`` - evaluate on a held-out test set (not yet implemented).
 
 Example::
 
@@ -23,6 +23,7 @@ import logging
 
 from training.train import train_model
 from training.export import export_to_onnx
+from training.evaluate import evaluate_model
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,7 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
         Configured :class:`argparse.ArgumentParser` instance.
     """
     parser = argparse.ArgumentParser(
-        description="DNA Junction Resolver — ML pipeline",
+        description="DNA Junction Resolver - ML pipeline",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     sub = parser.add_subparsers(dest="command", required=True)
@@ -61,6 +62,12 @@ def build_parser() -> argparse.ArgumentParser:
     g_data.add_argument("--augment",         action="store_true",    help="Enable reverse-complement augmentation")
     g_data.add_argument("--no_cov",          dest="use_cov", action="store_false",
                         help="Disable coverage features (cov_feat_dim=0)")
+    g_data.add_argument("--init_checkpoint", default=None,
+                        help="Path to a .pt checkpoint to initialise weights from (fine-tuning). "
+                             "If None, train from random initialisation.")
+    g_data.add_argument("--freeze_context_encoder", action="store_true",
+                        help="When fine-tuning, freeze context_encoder weights "
+                             "(only branch_encoder + scorer are updated).")
 
     g_model = p_train.add_argument_group("model")
     g_model.add_argument("--embed_dim",  type=int, default=64, help="CNN output embedding size")
@@ -76,6 +83,7 @@ def build_parser() -> argparse.ArgumentParser:
     g_opt.add_argument("--num_workers",   type=int,   default=0,                  help="DataLoader worker processes")
     g_opt.add_argument("--wandb",         action="store_true",                    help="Enable Weights & Biases logging")
     g_opt.add_argument("--wandb_project", type=str,   default="dna-assembler-ml", help="W&B project name")
+    g_opt.add_argument("--run_name",      type=str,   default=None,               help="Optional suffix added to checkpoint filename, e.g. 'ecoli' -> mv1_siamese_cnn_ecoli_best.pt")
 
     p_export = sub.add_parser(
         "export",
@@ -86,14 +94,26 @@ def build_parser() -> argparse.ArgumentParser:
     p_export.add_argument("--output_onnx",  default="model.onnx",  help="Output path for the .onnx file")
     p_export.add_argument("--context_len",  type=int, default=100, help="Dummy context length for ONNX trace")
     p_export.add_argument("--branch_len",   type=int, default=100, help="Dummy branch length for ONNX trace")
-    # Fallback architecture args — used only when checkpoint has no model_hparams
+    # Fallback architecture args - used only when checkpoint has no model_hparams
     p_export.add_argument("--embed_dim",    type=int, default=64,  help="(fallback) CNN embedding size")
     p_export.add_argument("--hidden_dim",   type=int, default=64,  help="(fallback) MLP hidden size")
     p_export.add_argument("--cov_feat_dim", type=int, default=6,   help="(fallback) coverage feature dim")
 
-    p_eval = sub.add_parser("evaluate", help="Evaluate model on a held-out test CSV (TODO)")
-    p_eval.add_argument("--model_path", required=True, help="Path to best_model.pt")
-    p_eval.add_argument("--test_csv",   required=True, help="Path to test CSV")
+    p_eval = sub.add_parser(
+        "evaluate",
+        help="Evaluate a trained model on a CSV and write metrics to JSON",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    p_eval.add_argument("--model_path",     required=True, help="Path to .pt checkpoint")
+    p_eval.add_argument("--test_csv",       required=True, help="Path to evaluation CSV")
+    p_eval.add_argument("--output_json",    default=None,  help="Write metrics to this JSON file")
+    p_eval.add_argument("--context_len",    type=int, default=100, help="Max context length (bp)")
+    p_eval.add_argument("--branch_len",     type=int, default=100, help="Max branch length (bp)")
+    p_eval.add_argument("--min_context_len",type=int, default=10,  help="Min context length filter")
+    p_eval.add_argument("--min_branch_len", type=int, default=5,   help="Min branch length filter")
+    p_eval.add_argument("--batch_size",     type=int, default=64,  help="Evaluation batch size")
+    p_eval.add_argument("--num_workers",    type=int, default=0,   help="DataLoader workers")
+    p_eval.add_argument("--device",         type=str, default=None,help="Device: cuda/mps/cpu (auto)")
 
     return parser
 
@@ -107,7 +127,7 @@ def main() -> None:
     elif args.command == "export":
         export_to_onnx(args)
     elif args.command == "evaluate":
-        logger.warning("'evaluate' not yet implemented.")
+        evaluate_model(args)
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 //! FASTA format rules handled here:
 //!   - Header line starts with `>`; everything after `>` is the header string.
 //!   - Sequence may span multiple lines; they are concatenated.
-//!   - Lines starting with `;` are comments — skipped.
+//!   - Lines starting with `;` are comments - skipped.
 //!   - Bases are upper-cased; any non-ACGT character is replaced with 'N'
 //!     and a warning is emitted (so corrupt files don't silently break assembly).
 //!   - Empty records (header with no sequence) are skipped.

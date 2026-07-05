@@ -1,13 +1,13 @@
 //! CLI entry point for the DNA assembler.
 //!
 //! Three subcommands:
-//!   simulate   — generate synthetic reads from a reference genome
-//!   assemble   — build de Bruijn graph and extract contigs from reads
-//!   pipeline   — simulate + assemble in one step
+//!   simulate   - generate synthetic reads from a reference genome
+//!   assemble   - build de Bruijn graph and extract contigs from reads
+//!   pipeline   - simulate + assemble in one step
 //!
 //! Output layout:
-//!   results/<genome>/   — assembly artefacts (contigs, optional reads)
-//!   data/training/      — training CSVs accumulated across genomes
+//!   results/<genome>/   - assembly artefacts (contigs, optional reads)
+//!   data/training/      - training CSVs accumulated across genomes
 
 use std::path::PathBuf;
 use anyhow::Result;
@@ -28,7 +28,7 @@ const TRAINING_DATA_DIR: &str = "data/training";
 #[command(
     name    = "dna-assembler",
     version = "0.1.0",
-    about   = "De Bruijn graph DNA assembler — baseline for ML-guided assembly",
+    about   = "De Bruijn graph DNA assembler - baseline for ML-guided assembly",
     long_about = None,
 )]
 struct Cli {
@@ -157,7 +157,7 @@ fn cmd_simulate(sim: SimArgs, output: PathBuf) -> Result<()> {
     let reads = RandomReadSimulator::from_config(&cfg).simulate(&ref_seq)?;
 
     FastaWriter::new().write(&reads, &output)?;
-    println!("Reads written → {}", output.display());
+    println!("Reads written -> {}", output.display());
     Ok(())
 }
 
@@ -207,7 +207,7 @@ fn cmd_pipeline(
     if save_reads {
         std::fs::create_dir_all(&results_dir)?;
         FastaWriter::new().write(&reads, &sim_cfg.output_path)?;
-        println!("Reads saved → {}", sim_cfg.output_path.display());
+        println!("Reads saved -> {}", sim_cfg.output_path.display());
     }
 
     println!("\n=== STEP 2: Assemble ===");
@@ -220,7 +220,7 @@ fn cmd_pipeline(
         let ref_stem = sim.reference.file_stem().and_then(|s| s.to_str()).unwrap_or("reference");
         let csv_path = PathBuf::from(TRAINING_DATA_DIR)
             .join(format!("{}_training.csv", ref_stem));
-        println!("Training data → {}", csv_path.display());
+        println!("Training data -> {}", csv_path.display());
         Some(Box::new(TrainingDataGenerator::new(TrainingDataConfig::default(), ref_str, &csv_path, &graph)?) as _)
     } else if analyze {
         Some(Box::new(MlDataCollector::new(AnalysisOptions::all())) as _)
@@ -229,5 +229,14 @@ fn cmd_pipeline(
     };
 
     SimpleAssembler.run(&graph, &results_dir, &mut analyzer)?;
+
+    if gen_train_data && graph.junction_count() == 0 {
+        anyhow::bail!(
+            "No junctions found in de Bruijn graph (k={}) - training data cannot be generated.\n\
+             Try lowering k or increasing coverage.",
+            k
+        );
+    }
+
     Ok(())
 }

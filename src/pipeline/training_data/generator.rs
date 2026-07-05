@@ -26,7 +26,7 @@ pub struct TrainingDataConfig {
     pub context_len: usize,
     /// Number of nucleotides sampled along each branch after the junction.
     pub branch_len: usize,
-    /// Minimum branch coverage — branches below this threshold are skipped as likely noise.
+    /// Minimum branch coverage - branches below this threshold are skipped as likely noise.
     pub min_branch_coverage: u32,
 }
 
@@ -84,10 +84,10 @@ impl TrainingDataGenerator {
     /// Create a new generator, writing the CSV header to `output_path`.
     ///
     /// # Arguments
-    /// - `cfg` — feature-extraction parameters
-    /// - `reference` — full reference genome string (used for ground-truth lookup)
-    /// - `output_path` — CSV destination; parent directories are created if needed
-    /// - `graph` — the de Bruijn graph (borrowed for the lifetime of traversal)
+    /// - `cfg` - feature-extraction parameters
+    /// - `reference` - full reference genome string (used for ground-truth lookup)
+    /// - `output_path` - CSV destination; parent directories are created if needed
+    /// - `graph` - the de Bruijn graph (borrowed for the lifetime of traversal)
     pub fn new(
         cfg: TrainingDataConfig,
         reference: String,
@@ -128,13 +128,13 @@ impl TrainingDataGenerator {
     /// Record one junction encountered during traversal and write its CSV row.
     ///
     /// # Arguments
-    /// - `graph` — the de Bruijn graph (for branch-sequence extraction)
-    /// - `node_id` — junction node identifier
-    /// - `context_seq` — contig sequence assembled so far
-    /// - `contig_id` — index of the current contig
-    /// - `depth` — number of edges traversed in this contig before the junction
-    /// - `out_degree` — number of outgoing edges at the junction
-    /// - `in_degree` — number of incoming edges at the junction
+    /// - `graph` - the de Bruijn graph (for branch-sequence extraction)
+    /// - `node_id` - junction node identifier
+    /// - `context_seq` - contig sequence assembled so far
+    /// - `contig_id` - index of the current contig
+    /// - `depth` - number of edges traversed in this contig before the junction
+    /// - `out_degree` - number of outgoing edges at the junction
+    /// - `in_degree` - number of incoming edges at the junction
     pub fn record_junction(
         &mut self,
         graph: &DeBruijnGraph,
@@ -292,7 +292,7 @@ impl crate::pipeline::analysis::JunctionAnalyzer for TrainingDataGenerator {
         ctx: &crate::pipeline::analysis::JunctionContext
     ) -> crate::pipeline::analysis::JunctionFeatures {
         // SAFETY: graph_ptr was set from a live reference in `new` and the graph
-        // outlives this generator — the caller holds both for the same traversal.
+        // outlives this generator - the caller holds both for the same traversal.
         let graph = unsafe { &*self.graph_ptr };
 
         let _ = self.record_junction(

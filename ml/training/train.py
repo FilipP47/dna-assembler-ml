@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+import torch
 from torch.utils.data import DataLoader
 
 from data.dataset import JunctionDataset, collate_junction_batch
@@ -95,6 +96,21 @@ def train_model(args) -> TrainingHistory:
         hidden_dim=args.hidden_dim,
     )
 
+    if getattr(args, "init_checkpoint", None):
+        ckpt_path = Path(args.init_checkpoint)
+        ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+        model.load_state_dict(ckpt["model_state"])
+        logger.info(
+            "Loaded init checkpoint from %s (epoch=%s, val_junc_acc=%.4f)",
+            ckpt_path,
+            ckpt.get("epoch", "?"),
+            ckpt.get("val_junction_accuracy", float("nan")),
+        )
+        if getattr(args, "freeze_context_encoder", False):
+            for p in model.context_encoder.parameters():
+                p.requires_grad = False
+            logger.info("context_encoder frozen - only branch_encoder + scorer will be trained")
+
     wandb_config = {
         "data_path":   str(Path(args.data_path).name),
         "context_len": args.context_len,
@@ -118,6 +134,7 @@ def train_model(args) -> TrainingHistory:
         use_wandb=getattr(args, "wandb", False),
         wandb_project=getattr(args, "wandb_project", "dna-assembler-ml"),
         wandb_config=wandb_config,
+        run_name=getattr(args, "run_name", None),
     )
 
     history = trainer.fit(train_loader, val_loader)

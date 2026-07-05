@@ -1,4 +1,4 @@
-//! DNA assembler library — re-exports pipeline, core, and infra modules.
+//! DNA assembler library - re-exports pipeline, core, and infra modules.
 pub mod core;
 pub mod pipeline;
 pub mod infra;

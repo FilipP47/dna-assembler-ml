@@ -8,10 +8,10 @@
 //!   2. For each occurrence, read the nucleotide immediately following it.
 //!   3. Also search the reverse complement of `context_seq` (captures the
 //!      complementary strand).
-//!   4. If every occurrence leads to the same branch → `Known`.
-//!   5. If occurrences lead to different branches → `Ambiguous`
+//!   4. If every occurrence leads to the same branch -> `Known`.
+//!   5. If occurrences lead to different branches -> `Ambiguous`
 //!      (context too short or a repeat region).
-//!   6. If the context is not found → `NotFound`.
+//!   6. If the context is not found -> `NotFound`.
 
 /// The ground-truth label for one junction.
 #[derive(Debug, Clone, PartialEq)]
@@ -50,7 +50,7 @@ impl GroundTruth {
 /// Both the forward strand and the reverse complement of `context_seq` are searched
 /// so that junctions covered only by the complementary strand are still labeled.
 ///
-/// `available_branches` — ASCII bytes (A/C/G/T) of existing outgoing edges at the junction.
+/// `available_branches` - ASCII bytes (A/C/G/T) of existing outgoing edges at the junction.
 pub fn find_ground_truth(
     context_seq: &str,
     reference: &str,

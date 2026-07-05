@@ -2,10 +2,10 @@
 
 Tracks three levels of accuracy:
 
-1. **Pair accuracy** — fraction of ``(branch_correct, branch_wrong)`` pairs
+1. **Pair accuracy** - fraction of ``(branch_correct, branch_wrong)`` pairs
    classified correctly.
-2. **Junction accuracy** — fraction of junctions where *all* pairs are correct.
-3. **F1 / Precision / Recall** — standard binary classification metrics.
+2. **Junction accuracy** - fraction of junctions where *all* pairs are correct.
+3. **F1 / Precision / Recall** - standard binary classification metrics.
 """
 
 from __future__ import annotations

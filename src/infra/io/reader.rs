@@ -2,7 +2,7 @@
 //! format-specific readers must implement.
 //!
 //! New formats (FASTQ, plain-text, …) are added by implementing `ReadParser`
-//! without touching any other module — Open/Closed Principle.
+//! without touching any other module - Open/Closed Principle.
 
 use std::path::Path;
 use anyhow::Result;

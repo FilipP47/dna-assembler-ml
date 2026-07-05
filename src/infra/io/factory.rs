@@ -2,7 +2,7 @@
 //! file extension.
 //!
 //! Adding a new format means adding one `match` arm here and providing the
-//! concrete reader — nothing else changes.
+//! concrete reader - nothing else changes.
 
 use std::path::Path;
 use anyhow::{bail, Result};
@@ -12,7 +12,7 @@ use super::{fasta::FastaReader, reader::ReadParser};
 /// Returns a boxed `ReadParser` appropriate for the given file path.
 ///
 /// Supported extensions (case-insensitive):
-///   `.fa`, `.fasta`, `.fna`  →  `FastaReader`
+///   `.fa`, `.fasta`, `.fna`  ->  `FastaReader`
 ///
 /// # Errors
 /// Returns an error for unrecognised extensions so the caller can surface a

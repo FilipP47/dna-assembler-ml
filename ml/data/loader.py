@@ -127,7 +127,7 @@ def load_training_csv(
             # Offset junction_id per file so IDs stay unique across genomes.
             part = part.with_columns(pl.lit(i).alias("_source_file_idx"))
             parts.append(part)
-            logger.info("  [%d/%d] %s — %d rows", i + 1, len(csv_files), f.name, part.height)
+            logger.info("  [%d/%d] %s - %d rows", i + 1, len(csv_files), f.name, part.height)
         df = pl.concat(parts, how="diagonal_relaxed")
     else:
         if not csv_path.exists():
@@ -264,12 +264,21 @@ def split_dataset(
     val_fraction = val_split / (1.0 - test_split) if test_split < 1.0 else 0.0
     stratify_tv = df.gather(train_val_idx)["ground_truth"].fill_null("MISSING").to_numpy() if stratify else None
 
-    train_idx, val_idx = train_test_split(
-        train_val_idx,
-        test_size=val_fraction,
-        random_state=seed,
-        stratify=stratify_tv,
-    )
+    try:
+        train_idx, val_idx = train_test_split(
+            train_val_idx,
+            test_size=val_fraction,
+            random_state=seed,
+            stratify=stratify_tv,
+        )
+    except ValueError:
+        logger.warning("Stratified split failed (too few samples per class) - falling back to random split.")
+        train_idx, val_idx = train_test_split(
+            train_val_idx,
+            test_size=val_fraction,
+            random_state=seed,
+            stratify=None,
+        )
 
     df_train = df.gather(train_idx)
     df_val   = df.gather(val_idx)
