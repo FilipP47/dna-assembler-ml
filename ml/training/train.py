@@ -7,8 +7,10 @@ Called from ``main.py`` via ``handle_train(args)``.
 from __future__ import annotations
 
 import logging
+import random
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
@@ -19,6 +21,15 @@ from training.trainer import Trainer
 from training.metrics import TrainingHistory
 
 logger = logging.getLogger(__name__)
+
+
+def _set_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 def train_model(args) -> TrainingHistory:
@@ -40,6 +51,8 @@ def train_model(args) -> TrainingHistory:
     Returns:
         :class:`~training.metrics.TrainingHistory` with per-epoch metrics.
     """
+    _set_seed(args.seed)
+
     csv_path = Path(args.data_path)
 
     df, stats = load_training_csv(
@@ -94,6 +107,7 @@ def train_model(args) -> TrainingHistory:
         branch_embed_dim=args.embed_dim,
         cov_feat_dim=cov_dim,
         hidden_dim=args.hidden_dim,
+        dropout=getattr(args, "dropout", 0.3),
     )
 
     if getattr(args, "init_checkpoint", None):
@@ -128,6 +142,7 @@ def train_model(args) -> TrainingHistory:
         model=model,
         checkpoint_dir=Path(args.ckpt_dir),
         learning_rate=args.lr,
+        weight_decay=getattr(args, "weight_decay", 1e-4),
         epochs=args.epochs,
         early_stop=args.early_stop,
         device=args.device,

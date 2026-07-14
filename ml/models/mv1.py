@@ -20,11 +20,12 @@ class DNASequenceEncoder(nn.Module):
     branch candidates.
     """
 
-    def __init__(self, embed_dim: int = 64):
+    def __init__(self, embed_dim: int = 64, dropout: float = 0.3):
         """Initialise the convolutional encoder.
 
         Args:
             embed_dim: Number of output channels (embedding dimension).
+            dropout: Dropout probability applied after global average pooling.
         """
         super().__init__()
         self.conv_block = nn.Sequential(
@@ -40,6 +41,7 @@ class DNASequenceEncoder(nn.Module):
             nn.ReLU(),
             nn.BatchNorm1d(embed_dim)
         )
+        self.pool_drop = nn.Dropout(dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Encode a batch of one-hot sequences into embedding vectors.
@@ -54,7 +56,7 @@ class DNASequenceEncoder(nn.Module):
         """
         x = self.conv_block(x)
         x = torch.mean(x, dim=2)
-        return x
+        return self.pool_drop(x)
 
 
 class Mv1JunctionModel(BaseJunctionModel):
@@ -72,6 +74,7 @@ class Mv1JunctionModel(BaseJunctionModel):
         branch_embed_dim:  int = 64,
         cov_feat_dim:      int = 6,
         hidden_dim:        int = 64,
+        dropout:           float = 0.3,
     ):
         """Initialise the MV1 model.
 
@@ -81,15 +84,17 @@ class Mv1JunctionModel(BaseJunctionModel):
             cov_feat_dim: Dimensionality of the coverage feature vector.
                 Pass ``0`` to disable coverage features.
             hidden_dim: Hidden layer width of the scoring MLP.
+            dropout: Dropout probability used in CNN encoders and the MLP scorer.
         """
         super().__init__()
         self._context_embed_dim = context_embed_dim
         self._branch_embed_dim  = branch_embed_dim
         self._cov_feat_dim      = cov_feat_dim
         self._hidden_dim        = hidden_dim
+        self._dropout           = dropout
 
-        self.context_encoder = DNASequenceEncoder(embed_dim=context_embed_dim)
-        self.branch_encoder  = DNASequenceEncoder(embed_dim=branch_embed_dim)
+        self.context_encoder = DNASequenceEncoder(embed_dim=context_embed_dim, dropout=dropout)
+        self.branch_encoder  = DNASequenceEncoder(embed_dim=branch_embed_dim,  dropout=dropout)
 
         # A single scorer shared across both branches preserves Siamese symmetry:
         # branch_a and branch_b receive identical treatment with identical weights.
@@ -98,9 +103,10 @@ class Mv1JunctionModel(BaseJunctionModel):
         self.scorer = nn.Sequential(
             nn.Linear(mlp_in_dim, hidden_dim),
             nn.ReLU(),
-            nn.Dropout(0.2),
+            nn.Dropout(dropout),
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
+            nn.Dropout(dropout),
             nn.Linear(hidden_dim // 2, 1)
         )
 
@@ -120,6 +126,7 @@ class Mv1JunctionModel(BaseJunctionModel):
             "branch_embed_dim":  self._branch_embed_dim,
             "cov_feat_dim":      self._cov_feat_dim,
             "hidden_dim":        self._hidden_dim,
+            "dropout":           self._dropout,
         }
 
     def forward(

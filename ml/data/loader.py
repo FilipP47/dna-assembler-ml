@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 import polars as pl
@@ -54,6 +54,7 @@ class DatasetStats:
     avg_branch_len:     float
     avg_out_degree:     float
     coverage_stats:     Dict[str, float]
+    k_value:            Optional[int] = None
 
     def print(self) -> None:
         """Print a human-readable summary of the dataset statistics."""
@@ -72,6 +73,8 @@ class DatasetStats:
               f"{self.coverage_stats['min']:.0f} / "
               f"{self.coverage_stats['mean']:.0f} / "
               f"{self.coverage_stats['max']:.0f}")
+        if self.k_value is not None:
+            print(f"  k (de Bruijn):           {self.k_value}")
         print("=" * 55)
 
 
@@ -143,7 +146,8 @@ def load_training_csv(
     total_rows = df.height
     logger.info("Loaded %d rows total", total_rows)
 
-    int_cols = ["junction_id", "contig_id", "depth_in_contig", "out_degree", "in_degree", "total_reads"]
+    int_cols = ["junction_id", "contig_id", "depth_in_contig", "out_degree", "in_degree", "total_reads", "k"]
+    int_cols = [c for c in int_cols if c in df.columns]
     float_cols = ["cov_ratio_max"]
     cov_cols = [f"branch_{b}_cov" for b in BASES]
 
@@ -202,6 +206,15 @@ def load_training_csv(
     else:
         cov_stats = {"min": 0.0, "mean": 0.0, "max": 0.0}
 
+    k_value: Optional[int] = None
+    if "k" in df.columns:
+        k_vals = df["k"].drop_nulls().unique()
+        if len(k_vals) == 1:
+            k_value = int(k_vals[0])
+        elif len(k_vals) > 1:
+            logger.warning("Multiple k values found in CSV: %s", k_vals.to_list())
+            k_value = int(k_vals[0])
+
     stats = DatasetStats(
         total_rows=total_rows,
         usable_rows=usable_rows,
@@ -212,6 +225,7 @@ def load_training_csv(
         avg_branch_len=float(df["max_branch_len"].mean() or 0.0),
         avg_out_degree=float(df["out_degree"].mean() or 0.0),
         coverage_stats=cov_stats,
+        k_value=k_value,
     )
 
     if only_labeled:
@@ -219,6 +233,40 @@ def load_training_csv(
         logger.info(f"After label filtering: {df.height} usable rows")
 
     return df, stats
+
+
+def kfold_splits(
+    df: pl.DataFrame,
+    n_splits: int = 5,
+    seed: int = 42,
+) -> list[tuple[pl.DataFrame, pl.DataFrame]]:
+    """Generate stratified k-fold train/val splits.
+
+    Args:
+        df: Source Polars DataFrame (labeled rows only).
+        n_splits: Number of folds.
+        seed: Random seed for reproducible fold assignment.
+
+    Returns:
+        List of ``(df_train, df_val)`` tuples, one per fold.
+    """
+    from sklearn.model_selection import StratifiedKFold
+
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    labels = df["ground_truth"].fill_null("MISSING").to_numpy()
+    indices = np.arange(df.height)
+
+    splits = []
+    for train_idx, val_idx in skf.split(indices, labels):
+        splits.append((df.gather(train_idx), df.gather(val_idx)))
+
+    logger.info(
+        "kfold_splits: %d-fold, n=%d, seed=%d → fold sizes train≈%d val≈%d",
+        n_splits, df.height, seed,
+        len(splits[0][0]) if splits else 0,
+        len(splits[0][1]) if splits else 0,
+    )
+    return splits
 
 
 def split_dataset(
