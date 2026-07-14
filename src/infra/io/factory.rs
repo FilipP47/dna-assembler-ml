@@ -4,8 +4,8 @@
 //! Adding a new format means adding one `match` arm here and providing the
 //! concrete reader - nothing else changes.
 
-use std::path::Path;
 use anyhow::{bail, Result};
+use std::path::Path;
 
 use super::{fasta::FastaReader, reader::ReadParser};
 

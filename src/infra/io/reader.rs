@@ -4,8 +4,8 @@
 //! New formats (FASTQ, plain-text, …) are added by implementing `ReadParser`
 //! without touching any other module - Open/Closed Principle.
 
-use std::path::Path;
 use anyhow::Result;
+use std::path::Path;
 
 /// A single DNA read as returned by any `ReadParser` implementation.
 #[derive(Debug, Clone)]

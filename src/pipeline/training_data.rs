@@ -2,5 +2,5 @@
 pub mod generator;
 pub mod ground_truth;
 
-pub use generator::{TrainingDataConfig, TrainingDataGenerator, GeneratorStats};
-pub use ground_truth::{GroundTruth, find_ground_truth};
+pub use generator::{GeneratorStats, TrainingDataConfig, TrainingDataGenerator};
+pub use ground_truth::{find_ground_truth, GroundTruth};

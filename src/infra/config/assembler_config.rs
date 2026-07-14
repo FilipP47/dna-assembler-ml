@@ -2,9 +2,9 @@
 //!
 //! Built via `AssemblerConfig::builder()`.
 
-use std::path::PathBuf;
-use anyhow::{bail, Result};
 use crate::pipeline::analysis::options::AnalysisOptions;
+use anyhow::{bail, Result};
+use std::path::PathBuf;
 
 /// Runtime configuration for one assembler run.
 #[derive(Debug, Clone)]
@@ -85,8 +85,11 @@ impl AssemblerConfigBuilder {
             bail!("k must be at least 2 (got {})", k);
         }
         // k should be odd to avoid palindrome ambiguity (convention, not hard requirement)
-        if k % 2 == 0 {
-            eprintln!("Warning: even k={} is unusual; odd values are conventional.", k);
+        if k.is_multiple_of(2) {
+            eprintln!(
+                "Warning: even k={} is unusual; odd values are conventional.",
+                k
+            );
         }
 
         Ok(AssemblerConfig {

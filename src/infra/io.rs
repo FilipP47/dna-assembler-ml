@@ -8,12 +8,12 @@
 //!   - `FastaReader`      - concrete FASTA reader
 //!   - `FastaWriter`      - concrete FASTA writer
 
-pub mod fasta;
 pub mod factory;
+pub mod fasta;
 pub mod reader;
 pub mod writer;
 
+pub use factory::reader_for_path;
+pub use fasta::{FastaReader, FastaWriter};
 pub use reader::{DnaRead, ReadParser};
 pub use writer::ReadWriter;
-pub use fasta::{FastaReader, FastaWriter};
-pub use factory::reader_for_path;

@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::infra::io::DnaRead;
+use anyhow::Result;
 
 /// Strategy interface for read simulators.
 pub trait ReadSimulator {

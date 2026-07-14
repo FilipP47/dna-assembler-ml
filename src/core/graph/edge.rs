@@ -22,6 +22,10 @@ pub struct DeBruijnEdge {
 impl DeBruijnEdge {
     /// Create a new edge with initial coverage of 1.
     pub fn new(from: NodeId, to: NodeId) -> Self {
-        Self { from, to, coverage: 1 }
+        Self {
+            from,
+            to,
+            coverage: 1,
+        }
     }
 }

@@ -6,18 +6,18 @@
 //!   - Ground truth (the correct branch according to the reference genome)
 //!   - Aggregate coverage statistics (cov_ratio, total_reads)
 
+use anyhow::{Context, Result};
 use std::{
     fs::File,
     io::{BufWriter, Write},
     path::Path,
 };
-use anyhow::{Context, Result};
 
-use crate::{
-    core::kmer::{NodeId, INDEX_TO_BASE},
-    core::graph::DeBruijnGraph,
-};
 use super::ground_truth::{find_ground_truth, GroundTruth};
+use crate::{
+    core::graph::DeBruijnGraph,
+    core::kmer::{NodeId, INDEX_TO_BASE},
+};
 
 /// Parameters controlling what context and branch data are captured per junction.
 #[derive(Debug, Clone)]
@@ -40,26 +40,26 @@ impl Default for TrainingDataConfig {
     }
 }
 
-
 /// Streams training data to a CSV file during graph traversal.
 ///
 /// Implements `JunctionAnalyzer` so it plugs directly into the assembler pipeline.
 pub struct TrainingDataGenerator {
-    cfg:       TrainingDataConfig,
+    cfg: TrainingDataConfig,
     reference: String,
-    writer:    BufWriter<File>,
-    stats:     GeneratorStats,
+    writer: BufWriter<File>,
+    stats: GeneratorStats,
     graph_ptr: *const DeBruijnGraph,
+    k: usize,
 }
 
 /// Counters accumulated while generating training data.
 #[derive(Debug, Default)]
 pub struct GeneratorStats {
-    pub total_junctions:   usize,
-    pub labeled:           usize,
-    pub ambiguous:         usize,
-    pub not_found:         usize,
-    pub skipped_low_cov:   usize,
+    pub total_junctions: usize,
+    pub labeled: usize,
+    pub ambiguous: usize,
+    pub not_found: usize,
+    pub skipped_low_cov: usize,
 }
 
 impl GeneratorStats {
@@ -113,7 +113,7 @@ impl TrainingDataGenerator {
              branch_G_seq,branch_G_cov,\
              branch_T_seq,branch_T_cov,\
              ground_truth,gt_ambiguous,\
-             cov_ratio_max,total_reads"
+             cov_ratio_max,total_reads,k"
         )?;
 
         Ok(Self {
@@ -122,9 +122,11 @@ impl TrainingDataGenerator {
             writer,
             stats: GeneratorStats::default(),
             graph_ptr: graph as *const DeBruijnGraph,
+            k: graph.k,
         })
     }
 
+    #[allow(clippy::too_many_arguments)]
     /// Record one junction encountered during traversal and write its CSV row.
     ///
     /// # Arguments
@@ -156,8 +158,8 @@ impl TrainingDataGenerator {
         let k = graph.k;
 
         let mut branch_seq: [Option<String>; 4] = [None, None, None, None];
-        let mut branch_cov: [Option<u32>;   4] = [None, None, None, None];
-        let mut available_branches: Vec<u8>     = Vec::new();
+        let mut branch_cov: [Option<u32>; 4] = [None, None, None, None];
+        let mut available_branches: Vec<u8> = Vec::new();
 
         for i in 0..4 {
             let edge_key = match &node.out_edges[i] {
@@ -198,8 +200,8 @@ impl TrainingDataGenerator {
 
         match &ground_truth {
             GroundTruth::Known { .. } => self.stats.labeled += 1,
-            GroundTruth::Ambiguous    => self.stats.ambiguous += 1,
-            GroundTruth::NotFound     => self.stats.not_found += 1,
+            GroundTruth::Ambiguous => self.stats.ambiguous += 1,
+            GroundTruth::NotFound => self.stats.not_found += 1,
         }
 
         let covs: Vec<u32> = branch_cov.iter().flatten().copied().collect();
@@ -214,7 +216,9 @@ impl TrainingDataGenerator {
         let branch_fields: String = (0..4)
             .flat_map(|i| {
                 let seq = branch_seq[i].as_deref().unwrap_or("NA").to_string();
-                let cov = branch_cov[i].map(|v| v.to_string()).unwrap_or_else(|| "NA".into());
+                let cov = branch_cov[i]
+                    .map(|v| v.to_string())
+                    .unwrap_or_else(|| "NA".into());
                 [seq, cov]
             })
             .collect::<Vec<_>>()
@@ -222,16 +226,23 @@ impl TrainingDataGenerator {
 
         let (gt, gt_amb) = ground_truth.to_csv_value();
 
-        write!(
-            self.writer,
-            "{},{},{},{},{},{},{},{},{},{},{:.4},{}\n",
+        let row = format!(
+            "{},{},{},{},{},{},{},{},{},{},{:.4},{},{}",
             self.stats.total_junctions - 1,
-            contig_id, depth, out_degree, in_degree,
-            node_seq, ctx,
+            contig_id,
+            depth,
+            out_degree,
+            in_degree,
+            node_seq,
+            ctx,
             branch_fields,
-            gt, gt_amb,
-            cov_ratio_max, total_reads,
-        )?;
+            gt,
+            gt_amb,
+            cov_ratio_max,
+            total_reads,
+            self.k,
+        );
+        writeln!(self.writer, "{}", row)?;
         Ok(())
     }
 
@@ -289,7 +300,7 @@ impl TrainingDataGenerator {
 impl crate::pipeline::analysis::JunctionAnalyzer for TrainingDataGenerator {
     fn analyze(
         &mut self,
-        ctx: &crate::pipeline::analysis::JunctionContext
+        ctx: &crate::pipeline::analysis::JunctionContext,
     ) -> crate::pipeline::analysis::JunctionFeatures {
         // SAFETY: graph_ptr was set from a live reference in `new` and the graph
         // outlives this generator - the caller holds both for the same traversal.

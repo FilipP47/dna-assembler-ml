@@ -1,16 +1,22 @@
-use std::{fs, io::{BufWriter, Write}, path::Path};
 use anyhow::{Context, Result};
+use std::{
+    fs,
+    io::{BufWriter, Write},
+    path::Path,
+};
 
+use super::traits::Assembler;
 use crate::core::contig::{Contig, ContigStats};
 use crate::core::graph::DeBruijnGraph;
 use crate::pipeline::analysis::JunctionAnalyzer;
-use super::traits::Assembler;
 
 /// A greedy assembler that cuts contigs at every junction (out-degree > 1).
 pub struct SimpleAssembler;
 
 impl Assembler for SimpleAssembler {
-    fn name(&self) -> &'static str { "SimpleAssembler (cut-at-junction)" }
+    fn name(&self) -> &'static str {
+        "SimpleAssembler (cut-at-junction)"
+    }
 
     fn assemble(
         &self,

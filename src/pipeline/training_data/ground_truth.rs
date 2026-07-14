@@ -30,12 +30,16 @@ impl GroundTruth {
         match self {
             Self::Known { base_char, .. } => {
                 let s = match base_char {
-                    'A' => "A", 'C' => "C", 'G' => "G", 'T' => "T", _ => "NA",
+                    'A' => "A",
+                    'C' => "C",
+                    'G' => "G",
+                    'T' => "T",
+                    _ => "NA",
                 };
                 (s, "false")
             }
             Self::Ambiguous => ("ambiguous", "true"),
-            Self::NotFound  => ("NA", "false"),
+            Self::NotFound => ("NA", "false"),
         }
     }
 
@@ -69,7 +73,9 @@ pub fn find_ground_truth(
         vec![]
     };
 
-    let all_positions: Vec<(usize, bool)> = positions.iter().map(|&p| (p, false))
+    let all_positions: Vec<(usize, bool)> = positions
+        .iter()
+        .map(|&p| (p, false))
         .chain(rc_positions.iter().map(|&p| (p, true)))
         .collect();
 
@@ -84,10 +90,14 @@ pub fn find_ground_truth(
     for &(pos, is_rc) in &all_positions {
         let next_byte = if !is_rc {
             let next_pos = pos + ctx_len;
-            if next_pos >= ref_bytes.len() { continue; }
+            if next_pos >= ref_bytes.len() {
+                continue;
+            }
             ref_bytes[next_pos].to_ascii_uppercase()
         } else {
-            if pos == 0 { continue; }
+            if pos == 0 {
+                continue;
+            }
             let prev_byte = ref_bytes[pos - 1].to_ascii_uppercase();
             match prev_byte {
                 b'A' => b'T',
@@ -159,8 +169,8 @@ mod tests {
     #[test]
     fn unique_continuation() {
         let reference = "AAAACGTTTTT";
-        let context   = "AAAACG";
-        let branches  = &[b'T', b'A'];
+        let context = "AAAACG";
+        let branches = &[b'T', b'A'];
         let gt = find_ground_truth(context, reference, branches);
         assert!(matches!(gt, GroundTruth::Known { base_char: 'T', .. }));
     }
@@ -168,8 +178,8 @@ mod tests {
     #[test]
     fn ambiguous_when_repeat() {
         let reference = "AAAACGTTTAAAACGAAA";
-        let context   = "AAAACG";
-        let branches  = &[b'T', b'A'];
+        let context = "AAAACG";
+        let branches = &[b'T', b'A'];
         let gt = find_ground_truth(context, reference, branches);
         assert_eq!(gt, GroundTruth::Ambiguous);
     }
@@ -177,8 +187,8 @@ mod tests {
     #[test]
     fn not_found_when_missing() {
         let reference = "TTTTTTTTTT";
-        let context   = "AAAACG";
-        let branches  = &[b'T', b'A'];
+        let context = "AAAACG";
+        let branches = &[b'T', b'A'];
         let gt = find_ground_truth(context, reference, branches);
         assert_eq!(gt, GroundTruth::NotFound);
     }
@@ -197,14 +207,15 @@ mod tests {
         // Searching for context "GA": not present on forward strand, but on the RC
         // strand 5'-C[GA]T-3' the next base is 'T'.
         let reference = "ATCG";
-        let context   = "GA";
-        let branches  = &[b'T', b'C'];
+        let context = "GA";
+        let branches = &[b'T', b'C'];
 
         let gt = find_ground_truth(context, reference, branches);
 
         assert!(
             matches!(gt, GroundTruth::Known { base_char: 'T', .. }),
-            "Expected GroundTruth::Known with 'T', got: {:?}", gt
+            "Expected GroundTruth::Known with 'T', got: {:?}",
+            gt
         );
     }
 }

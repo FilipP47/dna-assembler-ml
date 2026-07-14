@@ -11,8 +11,10 @@ use std::num::NonZeroU8;
 /// Panics on any byte that is not a valid ACGT base (case-insensitive).
 pub fn base_to_index(b: u8) -> usize {
     match b {
-        b'A' | b'a' => 0, b'C' | b'c' => 1,
-        b'G' | b'g' => 2, b'T' | b't' => 3,
+        b'A' | b'a' => 0,
+        b'C' | b'c' => 1,
+        b'G' | b'g' => 2,
+        b'T' | b't' => 3,
         _ => panic!("Invalid DNA base: '{}'", b as char),
     }
 }
@@ -21,8 +23,10 @@ pub const INDEX_TO_BASE: [char; 4] = ['A', 'C', 'G', 'T'];
 
 fn encode_base(b: u8) -> u64 {
     match b {
-        b'A' | b'a' => 0, b'C' | b'c' => 1,
-        b'G' | b'g' => 2, b'T' | b't' => 3,
+        b'A' | b'a' => 0,
+        b'C' | b'c' => 1,
+        b'G' | b'g' => 2,
+        b'T' | b't' => 3,
         _ => panic!("Invalid DNA base: '{}'", b as char),
     }
 }
@@ -34,7 +38,8 @@ fn pack_u64(seq: &[u8]) -> u64 {
 
 /// Decode `len` bases from a packed u64 back to a DNA string.
 fn unpack_u64(val: u64, len: usize) -> String {
-    (0..len).rev()
+    (0..len)
+        .rev()
         .map(|i| INDEX_TO_BASE[((val >> (i * 2)) & 0b11) as usize])
         .collect()
 }
@@ -49,8 +54,8 @@ fn unpack_u64(val: u64, len: usize) -> String {
 /// `Option<DnaKey>` is the same size as `DnaKey` - no extra byte for discriminant.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DnaKey {
-    lo:  u64,
-    hi:  u64,
+    lo: u64,
+    hi: u64,
     len: NonZeroU8,
 }
 
@@ -59,7 +64,7 @@ pub struct DnaKey {
 pub type KmerKey = DnaKey;
 
 /// Type alias for a node identifier ((k-1)-mer) in the de Bruijn graph.
-pub type NodeId  = DnaKey;
+pub type NodeId = DnaKey;
 
 impl DnaKey {
     /// Encode a DNA sequence.
@@ -68,7 +73,11 @@ impl DnaKey {
     /// Panics if `seq` is empty or longer than 64 bases.
     pub fn encode(seq: &[u8]) -> Self {
         assert!(!seq.is_empty(), "Cannot encode empty sequence");
-        assert!(seq.len() <= 64, "k > 64 is not supported (got {})", seq.len());
+        assert!(
+            seq.len() <= 64,
+            "k > 64 is not supported (got {})",
+            seq.len()
+        );
 
         let (lo, hi) = if seq.len() <= 32 {
             (pack_u64(seq), 0u64)
@@ -97,7 +106,14 @@ impl DnaKey {
     }
 
     /// Length of the encoded sequence in bases.
-    pub fn len(&self) -> usize { self.len.get() as usize }
+    pub fn len(&self) -> usize {
+        self.len.get() as usize
+    }
+
+    /// Returns true if the sequence has zero bases.
+    pub fn is_empty(&self) -> bool {
+        self.len.get() == 0
+    }
 
     /// First (len-1) bases -> source NodeId of this edge.
     ///
@@ -117,7 +133,7 @@ impl DnaKey {
 
     /// Index (0–3) of the last nucleotide - used to index into `node.out_edges`.
     pub fn last_base_idx(&self) -> usize {
-        (self.lo & 0b11) as usize       // last 2 bits of lo always = last base
+        (self.lo & 0b11) as usize // last 2 bits of lo always = last base
     }
 
     /// Index (0–3) of the first nucleotide - used to index into `node.in_edges`.
@@ -143,7 +159,10 @@ mod tests {
     #[test]
     fn option_niche_zero_overhead() {
         // Option<DnaKey> must be the same size as DnaKey thanks to NonZeroU8 niche
-        assert_eq!(std::mem::size_of::<Option<DnaKey>>(), std::mem::size_of::<DnaKey>());
+        assert_eq!(
+            std::mem::size_of::<Option<DnaKey>>(),
+            std::mem::size_of::<DnaKey>()
+        );
     }
 
     #[test]
@@ -177,6 +196,6 @@ mod tests {
     fn base_indices() {
         let k = DnaKey::encode(b"ACGT");
         assert_eq!(k.first_base_idx(), base_to_index(b'A')); // 0
-        assert_eq!(k.last_base_idx(),  base_to_index(b'T')); // 3
+        assert_eq!(k.last_base_idx(), base_to_index(b'T')); // 3
     }
 }

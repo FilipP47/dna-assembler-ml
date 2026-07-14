@@ -16,19 +16,16 @@
 //!               - cycle      (edge already visited)
 //!   Pass 2 - Pick up any edges still unvisited (pure cycles).
 
-use std::collections::{HashMap, HashSet};
 use anyhow::Result;
+use std::collections::{HashMap, HashSet};
 
-use crate::{
-    infra::io::DnaRead,
-    core::kmer::{KmerKey, NodeId, INDEX_TO_BASE},
-    pipeline::analysis::{
-        features::{JunctionContext},
-        traits::JunctionAnalyzer,
-    },
-};
 use super::{edge::DeBruijnEdge, node::DeBruijnNode};
 use crate::core::contig::Contig;
+use crate::{
+    core::kmer::{KmerKey, NodeId, INDEX_TO_BASE},
+    infra::io::DnaRead,
+    pipeline::analysis::{features::JunctionContext, traits::JunctionAnalyzer},
+};
 
 /// The de Bruijn graph: a directed multigraph where nodes are (k-1)-mers
 /// and edges are k-mers, weighted by sequencing coverage.
@@ -65,7 +62,10 @@ impl DeBruijnGraph {
 
             for i in 0..=(seq.len() - k) {
                 let window = &seq[i..i + k];
-                if window.iter().any(|&b| !matches!(b, b'A'|b'a'|b'C'|b'c'|b'G'|b'g'|b'T'|b't')) {
+                if window
+                    .iter()
+                    .any(|&b| !matches!(b, b'A' | b'a' | b'C' | b'c' | b'G' | b'g' | b'T' | b't'))
+                {
                     continue;
                 }
                 graph.insert_kmer(window);
@@ -89,7 +89,7 @@ impl DeBruijnGraph {
 
         let prefix = edge_key.prefix_node();
         let suffix = edge_key.suffix_node();
-        let last_idx  = edge_key.last_base_idx();
+        let last_idx = edge_key.last_base_idx();
         let first_idx = edge_key.first_base_idx();
 
         {
@@ -102,14 +102,19 @@ impl DeBruijnGraph {
             dst.add_in_edge(first_idx, edge_key.clone());
         }
 
-        self.edges.insert(edge_key, DeBruijnEdge::new(prefix, suffix));
+        self.edges
+            .insert(edge_key, DeBruijnEdge::new(prefix, suffix));
     }
 
     /// Total number of nodes (distinct (k-1)-mers).
-    pub fn node_count(&self) -> usize { self.nodes.len() }
+    pub fn node_count(&self) -> usize {
+        self.nodes.len()
+    }
 
     /// Total number of edges (distinct k-mers).
-    pub fn edge_count(&self) -> usize { self.edges.len() }
+    pub fn edge_count(&self) -> usize {
+        self.edges.len()
+    }
 
     /// Number of nodes with out-degree > 1 (branching points).
     pub fn junction_count(&self) -> usize {
@@ -129,10 +134,7 @@ impl DeBruijnGraph {
     ///
     /// `analyzer` is called at every junction when `Some`; pass `None` to skip
     /// analysis entirely (no overhead).
-    pub fn traverse(
-        &self,
-        analyzer: &mut Option<Box<dyn JunctionAnalyzer>>,
-    ) -> Vec<Contig> {
+    pub fn traverse(&self, analyzer: &mut Option<Box<dyn JunctionAnalyzer>>) -> Vec<Contig> {
         let mut visited: HashSet<KmerKey> = HashSet::new();
         let mut contigs: Vec<Contig> = Vec::new();
         let mut contig_id = 0usize;
@@ -155,19 +157,17 @@ impl DeBruijnGraph {
                 Some(n) => n,
                 None => continue,
             };
-            for slot in &node.out_edges {
-                if let Some(edge_key) = slot {
-                    if !visited.contains(edge_key) {
-                        if let Some(c) = self.extract_contig(
-                            node_id,
-                            edge_key.clone(),
-                            &mut visited,
-                            analyzer,
-                            contig_id,
-                        ) {
-                            contig_id += 1;
-                            contigs.push(c);
-                        }
+            for edge_key in node.out_edges.iter().flatten() {
+                if !visited.contains(edge_key) {
+                    if let Some(c) = self.extract_contig(
+                        node_id,
+                        edge_key.clone(),
+                        &mut visited,
+                        analyzer,
+                        contig_id,
+                    ) {
+                        contig_id += 1;
+                        contigs.push(c);
                     }
                 }
             }
@@ -183,13 +183,9 @@ impl DeBruijnGraph {
 
         for (edge_key, from_id) in remaining {
             if !visited.contains(&edge_key) {
-                if let Some(c) = self.extract_contig(
-                    &from_id,
-                    edge_key,
-                    &mut visited,
-                    analyzer,
-                    contig_id,
-                ) {
+                if let Some(c) =
+                    self.extract_contig(&from_id, edge_key, &mut visited, analyzer, contig_id)
+                {
                     contig_id += 1;
                     contigs.push(c);
                 }
@@ -241,12 +237,11 @@ impl DeBruijnGraph {
                     None => break,
                 };
 
-                let branch_cov: [Option<u32>; 4] =
-                    std::array::from_fn(|i| {
-                        next_node.out_edges[i].as_ref().and_then(|ek| {
-                            self.edges.get(ek).map(|e| e.coverage)
-                        })
-                    });
+                let branch_cov: [Option<u32>; 4] = std::array::from_fn(|i| {
+                    next_node.out_edges[i]
+                        .as_ref()
+                        .and_then(|ek| self.edges.get(ek).map(|e| e.coverage))
+                });
 
                 let next = if next_node.out_degree == 1 {
                     next_node.single_out_edge().cloned()
@@ -260,12 +255,10 @@ impl DeBruijnGraph {
             match out_degree {
                 0 => break,
 
-                1 => {
-                    match next_edge {
-                        Some(key) => current_edge = key,
-                        None => break,
-                    }
-                }
+                1 => match next_edge {
+                    Some(key) => current_edge = key,
+                    None => break,
+                },
 
                 _ => {
                     if let Some(ref mut a) = analyzer {

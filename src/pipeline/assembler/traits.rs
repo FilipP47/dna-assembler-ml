@@ -1,7 +1,7 @@
-use anyhow::Result;
 use crate::core::contig::Contig;
 use crate::core::graph::DeBruijnGraph;
 use crate::pipeline::analysis::JunctionAnalyzer;
+use anyhow::Result;
 
 /// Strategy interface for a DNA assembler.
 pub trait Assembler {
