@@ -3,8 +3,8 @@
 //! Built via `SimulatorConfig::builder()` - all fields have sensible defaults
 //! so callers only need to set what they care about.
 
-use std::path::PathBuf;
 use anyhow::{bail, Result};
+use std::path::PathBuf;
 
 /// Runtime configuration for one simulator run.
 #[derive(Debug, Clone)]
@@ -86,7 +86,9 @@ impl SimulatorConfigBuilder {
         let read_length = self.read_length.unwrap_or(150);
         let coverage = self.coverage.unwrap_or(30);
         let seed = self.seed.unwrap_or(42);
-        let output_path = self.output_path.unwrap_or_else(|| PathBuf::from("reads.fasta"));
+        let output_path = self
+            .output_path
+            .unwrap_or_else(|| PathBuf::from("reads.fasta"));
 
         if read_length < 2 {
             bail!("read_length must be at least 2 (got {})", read_length);

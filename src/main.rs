@@ -9,15 +9,14 @@
 //!   results/<genome>/   - assembly artefacts (contigs, optional reads)
 //!   data/training/      - training CSVs accumulated across genomes
 
-use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
+use std::path::{Path, PathBuf};
 
 use dna_assembler::{
-    AnalysisOptions, AssemblerConfig, DeBruijnGraph, FastaReader, FastaWriter,
-    JunctionAnalyzer, MlDataCollector, RandomReadSimulator, ReadParser, ReadSimulator,
-    ReadWriter, SimpleAssembler, SimulatorConfig, reader_for_path,
-    TrainingDataConfig, TrainingDataGenerator,
+    reader_for_path, AnalysisOptions, AssemblerConfig, DeBruijnGraph, FastaReader, FastaWriter,
+    JunctionAnalyzer, MlDataCollector, RandomReadSimulator, ReadParser, ReadSimulator, ReadWriter,
+    SimpleAssembler, SimulatorConfig, TrainingDataConfig, TrainingDataGenerator,
 };
 
 /// Directory where training CSVs are always written, shared across all genomes.
@@ -121,20 +120,35 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Simulate { sim, output } => cmd_simulate(sim, output),
 
-        Commands::Assemble { input, k, results_dir, analyze } => {
-            let mut builder = AssemblerConfig::builder().input(input).k(k).output_dir(results_dir);
-            if analyze { builder = builder.analysis(AnalysisOptions::all()); }
+        Commands::Assemble {
+            input,
+            k,
+            results_dir,
+            analyze,
+        } => {
+            let mut builder = AssemblerConfig::builder()
+                .input(input)
+                .k(k)
+                .output_dir(results_dir);
+            if analyze {
+                builder = builder.analysis(AnalysisOptions::all());
+            }
             cmd_assemble(builder.build()?)
         }
 
-        Commands::Pipeline { sim, k, results_dir, analyze, save_reads, gen_train_data } => {
-            cmd_pipeline(sim, k, results_dir, analyze, save_reads, gen_train_data)
-        }
+        Commands::Pipeline {
+            sim,
+            k,
+            results_dir,
+            analyze,
+            save_reads,
+            gen_train_data,
+        } => cmd_pipeline(sim, k, results_dir, analyze, save_reads, gen_train_data),
     }
 }
 
 /// Load and decode a reference genome FASTA into a byte vector.
-fn load_reference(path: &PathBuf) -> Result<Vec<u8>> {
+fn load_reference(path: &Path) -> Result<Vec<u8>> {
     println!("Loading reference: {}", path.display());
     let ref_reads = FastaReader.parse(path)?;
     anyhow::ensure!(!ref_reads.is_empty(), "Reference FASTA is empty");
@@ -217,11 +231,19 @@ fn cmd_pipeline(
     let mut analyzer: Option<Box<dyn JunctionAnalyzer>> = if gen_train_data {
         let ref_str = String::from_utf8(ref_seq)
             .map_err(|_| anyhow::anyhow!("Reference sequence is not valid UTF-8"))?;
-        let ref_stem = sim.reference.file_stem().and_then(|s| s.to_str()).unwrap_or("reference");
-        let csv_path = PathBuf::from(TRAINING_DATA_DIR)
-            .join(format!("{}_training.csv", ref_stem));
+        let ref_stem = sim
+            .reference
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("reference");
+        let csv_path = PathBuf::from(TRAINING_DATA_DIR).join(format!("{}_training.csv", ref_stem));
         println!("Training data -> {}", csv_path.display());
-        Some(Box::new(TrainingDataGenerator::new(TrainingDataConfig::default(), ref_str, &csv_path, &graph)?) as _)
+        Some(Box::new(TrainingDataGenerator::new(
+            TrainingDataConfig::default(),
+            ref_str,
+            &csv_path,
+            &graph,
+        )?) as _)
     } else if analyze {
         Some(Box::new(MlDataCollector::new(AnalysisOptions::all())) as _)
     } else {

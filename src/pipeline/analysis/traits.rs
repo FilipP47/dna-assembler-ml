@@ -4,9 +4,9 @@
 //! Implementations decide what to record and how to store it.
 //! A `NoOpAnalyzer` is provided for the `--no-analyze` path with zero overhead.
 
-use std::path::Path;
-use anyhow::Result;
 use super::features::{JunctionContext, JunctionFeatures};
+use anyhow::Result;
+use std::path::Path;
 
 /// Strategy interface for junction analysis.
 pub trait JunctionAnalyzer {

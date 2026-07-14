@@ -19,14 +19,14 @@
 use anyhow::{bail, Result};
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
-use crate::{infra::config::SimulatorConfig, infra::io::DnaRead};
 use super::traits::ReadSimulator;
+use crate::{infra::config::SimulatorConfig, infra::io::DnaRead};
 
 /// Reads simulator that samples uniformly random positions from a reference genome.
 pub struct RandomReadSimulator {
     read_length: usize,
-    coverage:    usize,
-    seed:        u64,
+    coverage: usize,
+    seed: u64,
 }
 
 impl RandomReadSimulator {
@@ -34,8 +34,8 @@ impl RandomReadSimulator {
     pub fn from_config(cfg: &SimulatorConfig) -> Self {
         Self {
             read_length: cfg.read_length,
-            coverage:    cfg.coverage,
-            seed:        cfg.seed,
+            coverage: cfg.coverage,
+            seed: cfg.seed,
         }
     }
 
@@ -44,7 +44,7 @@ impl RandomReadSimulator {
     /// Formula: `num_reads = ceil(genome_len × coverage / read_length)`
     fn num_reads(&self, genome_len: usize) -> usize {
         let total_bases = genome_len * self.coverage;
-        (total_bases + self.read_length - 1) / self.read_length
+        total_bases.div_ceil(self.read_length)
     }
 }
 
@@ -67,7 +67,7 @@ impl ReadSimulator for RandomReadSimulator {
         let num_reads = self.num_reads(genome_len);
         let max_start = genome_len - self.read_length;
 
-        let mut rng  = StdRng::seed_from_u64(self.seed);
+        let mut rng = StdRng::seed_from_u64(self.seed);
         let mut reads = Vec::with_capacity(num_reads);
 
         for i in 0..num_reads {
@@ -105,7 +105,11 @@ mod tests {
     const REF: &[u8] = b"ACGTACGTACGTACGTACGTACGTACGTACGTACGT"; // 36 bp
 
     fn make_sim(read_length: usize, coverage: usize, seed: u64) -> RandomReadSimulator {
-        RandomReadSimulator { read_length, coverage, seed }
+        RandomReadSimulator {
+            read_length,
+            coverage,
+            seed,
+        }
     }
 
     #[test]
@@ -130,14 +134,20 @@ mod tests {
         let r1 = sim.simulate(REF).unwrap();
         let r2 = sim.simulate(REF).unwrap();
         assert_eq!(r1.len(), r2.len());
-        assert!(r1.iter().zip(r2.iter()).all(|(a, b)| a.sequence == b.sequence));
+        assert!(r1
+            .iter()
+            .zip(r2.iter())
+            .all(|(a, b)| a.sequence == b.sequence));
     }
 
     #[test]
     fn different_seeds_differ() {
         let r1 = make_sim(10, 5, 1).simulate(REF).unwrap();
         let r2 = make_sim(10, 5, 2).simulate(REF).unwrap();
-        let all_same = r1.iter().zip(r2.iter()).all(|(a, b)| a.sequence == b.sequence);
+        let all_same = r1
+            .iter()
+            .zip(r2.iter())
+            .all(|(a, b)| a.sequence == b.sequence);
         assert!(!all_same);
     }
 

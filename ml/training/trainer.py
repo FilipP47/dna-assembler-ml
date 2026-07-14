@@ -43,6 +43,7 @@ class Trainer:
         model:          BaseJunctionModel,
         checkpoint_dir: Path,
         learning_rate:  float = 1e-3,
+        weight_decay:   float = 1e-4,
         epochs:         int   = 50,
         early_stop:     int   = 10,
         lr_patience:    int   = 5,
@@ -60,6 +61,7 @@ class Trainer:
             model: Model implementing :class:`~models.base.BaseJunctionModel`.
             checkpoint_dir: Directory where checkpoints are saved.
             learning_rate: Initial Adam learning rate.
+            weight_decay: L2 regularisation coefficient for Adam (``weight_decay``).
             epochs: Maximum number of training epochs.
             early_stop: Number of epochs without improvement before stopping.
             lr_patience: Epochs without improvement before LR is reduced.
@@ -88,7 +90,8 @@ class Trainer:
         logger.info(f"Model: {model.model_name()} "
                     f"({model.count_parameters():,} parameters)")
 
-        self.optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+        self.optimizer = optim.Adam(model.parameters(), lr=learning_rate,
+                                    weight_decay=weight_decay)
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer, mode="max",
             patience=lr_patience, factor=lr_factor,

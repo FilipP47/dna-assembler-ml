@@ -2,9 +2,9 @@
 //!
 //! Implemented by format-specific writers (FASTA, FASTQ, …).
 
-use std::path::Path;
-use anyhow::Result;
 use super::reader::DnaRead;
+use anyhow::Result;
+use std::path::Path;
 
 /// Strategy interface for writing DNA reads to a file.
 pub trait ReadWriter {

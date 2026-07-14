@@ -8,12 +8,12 @@
 //!     and a warning is emitted (so corrupt files don't silently break assembly).
 //!   - Empty records (header with no sequence) are skipped.
 
+use anyhow::{Context, Result};
 use std::{
     fs::File,
     io::{BufRead, BufReader, BufWriter, Write},
     path::Path,
 };
-use anyhow::{Context, Result};
 
 use super::{
     reader::{DnaRead, ReadParser},
@@ -41,7 +41,11 @@ impl ReadParser for FastaReader {
 
         for (line_no, line) in reader.lines().enumerate() {
             let line = line.with_context(|| {
-                format!("IO error reading {} at line {}", path.display(), line_no + 1)
+                format!(
+                    "IO error reading {} at line {}",
+                    path.display(),
+                    line_no + 1
+                )
             })?;
             let line = line.trim();
 

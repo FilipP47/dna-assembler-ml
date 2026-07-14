@@ -88,12 +88,14 @@ Dla kazdej galezi budowany jest wektor wejsciowy przez konkatenacje:
 [embedding_ctx | embedding_B | cov_feat]  -->  scorer  -->  score_B  (1 liczba)
 ```
 
-Scorer to MLP z trzema warstwami:
+Scorer to MLP z trzema warstwami (dropout po obu warstwach ukrytych):
 ```
-Linear(64 + 64 + 6 = 134  ->  64) + ReLU + Dropout(0.2)
-Linear(64 -> 32) + ReLU
+Linear(64 + 64 + 6 = 134  ->  64) + ReLU + Dropout(0.3)
+Linear(64 -> 32)                   + ReLU + Dropout(0.3)
 Linear(32 ->  1)                     -->  logit (surowy wynik)
 ```
+
+Dropout(0.3) stosowany jest rowniez po Global Average Pooling w obu enkoderach CNN.
 
 Ten sam scorer jest wywolywany dwukrotnie - raz dla A, raz dla B - z tymi samymi wagami. Dzieki temu model ocenia kazda galaz w identyczny sposob; jedyna roznica to embedding gałezi.
 
@@ -148,13 +150,15 @@ Głównym wyzwaniem jest wysoki odsetek skrzyżowań **ambiguous** - sięgający
 
 #### Statystyki zbioru treningowego
 
-| Organizm | Rozmiar genomu | Skrzyżowań łącznie | **Labeled** | Ambiguous |
-|---|---|---|---|---|
-| *E. coli* K-12 MG1655 | 4,6 Mbp | 703 | **153 (21,8%)** | 550 (78,2%) |
-| *S. cerevisiae* S288C | 12,1 Mbp | 3 742 | **636 (17,0%)** | 3 106 (83,0%) |
-| **Łącznie** | - | **4 445** | **789 (17,8%)** | 3 656 (82,2%) |
+Aktualny zbior danych to *S. cerevisiae* S288C wygenerowany potokiem Rust z wyzszym pokryciem niz wczesniejsze eksperymenty:
 
-Drożdże (*S. cerevisiae*) dostarczyły ponad czterokrotnie więcej skrzyżowań niż *E. coli*, co wynika z większego i bardziej złożonego genomu. Niższy odsetek labeled w drożdżach (~17% vs ~22%) potwierdza że większy genom z większą liczbą powtórzeń skutkuje trudniejszym wyznaczaniem ground truth.
+| Organizm | Rozmiar genomu | Wiersze w CSV | **Labeled** | Ambiguous |
+|---|---|---|---|---|
+| *S. cerevisiae* S288C | 12,1 Mbp | 10 840 | **3 939 (36,3%)** | 5 496 (50,7%) |
+
+Wiersze nieoznaczone (10 840 - 3 939 - 5 496 = 1 405) to skrzyzowania odfiltrowane przez minimalne wymagania dlugosci sekwencji (context >= 10 bp, branch >= 5 bp). Wyzszy odsetek labeled (36% vs ~17% w starszym przebiegu) wynika z wyzszego pokrycia odczytow: wiecej odczytow na kazda pozycje genomu oznacza ze nawet krotsze konteksty wystarczaja do jednoznacznego wskazania miejsca w genomie referencyjnym.
+
+We wczesniejszym eksperymencie (raport ponizej) uzywano lacznie *E. coli* + *S. cerevisiae* z lacznie 789 labeled skrzyzowaniami.
 
 
 ### Augmentacja danych
@@ -168,19 +172,82 @@ Oba zabiegi są niezależne, więc każde skrzyżowanie daje 4 pary (1 oryginał
 
 Po augmentacji łączny zbiór treningowy dla próbek Drożdże (S. cerevisiae) i E. coli wynosi ~**3 156 par** (789 skrzyżowań × 4 warianty).
 
-### Wyniki (E. coli + S. cerevisiae, 789 skrzyżowań z etykietą)
+### Czy model sie uczy i czy przebija baseline?
+
+Krotka odpowiedz: **model uczy sie, ale nie bije baseline w sposob powtarzalny i statystycznie wiarygodny.**
+
+Dowodem ze model uczy sie czegos jest zachowanie epok: z wlaczonymi cechami pokrycia `best_epoch=1` (model natychmiast kopiuje heurystyke max-coverage rowna baseline), bez pokrycia `best_epoch=6+` (CNN musi szukac sygnalu w sekwencji DNA i potrzebuje wiecej iteracji). Na dlugich kontekstach (>80 bp, 44% danych) model bez pokrycia nieznacznie bije baseline o +2,3 pp, co potwierdza ze CNN wyciaga z sekwencji jakis sygnał. Nie jest to jednak efekt na tyle silny zeby przelozyc sie na ogolny wynik.
+
+Wyniki 5-fold CV przy dwoch wartosciach k (stratyfikowany podzial, seed=42):
+
+| Konfiguracja | Labeled | Baseline | Model 5-fold CV | vs baseline |
+|---|---|---|---|---|
+| k=21, *S. cerevisiae* | 3 939 | 58,4% | **57,5% ± 0,9%** | -0,9 pp |
+| k=31, *S. cerevisiae* | 590 | 67,6% | **64,9% ± 2,3%** | -2,7 pp |
+
+k=31 ma wyzszy baseline (67,6%) bo przy dluzszym k-merze skrzyzowania sa rzadsze i bardziej specyficzne - pokrycie jest tam silniejszym sygnalem. k=21 jest lepszy do treningu: 6,7x wiecej probek, nizsza wariancja wynikow miedzy foldami.
+
+Wczesniejszy wynik 71,3% (pojedynczy random split na danych k=31 z E. coli + S. cerevisiae lacznie) nie jest powtarzalny: ten sam zbior z 5-fold CV daje 64,9% przy baseline 67,6%. Roznica wynikala prawdopodobnie z losowego podzialu na val z nizszym baseline, a nie z faktycznej przewagi modelu.
+
+### Szczegolowe wyniki: S. cerevisiae k=21, 5-fold CV
+
+Obecny zbior danych: 3 939 labeled skrzyzowań z jednego organizmu (*S. cerevisiae*, k=21). Ewaluacja opiera sie na stratyfikowanym 5-fold CV (seed=42).
 
 | Metryka | Wartość |
 |---|---|
-| Baseline (max-coverage) | **67,6%** (533/789 skrzyżowań) |
-| Najlepsza val. junction accuracy | **71,30%** (epoka 3) |
-| Najlepsza val. pair accuracy | 73,04% |
-| Najlepsza val. F1 | 0,8442 |
+| Baseline (max-coverage, globalny) | **58,4%** (2 299/3 939) |
+| Baseline (max-coverage, val fold) | ~58,9% (srednia po foldach) |
+| Val. junction accuracy - 5-fold | **57,5% ± 0,9%** |
+| Val. F1 - 5-fold | 0,744 ± 0,010 |
+| Best epoch (typowy) | 1-3 |
 
-**Model przebija baseline** o ~3,7 pp. Wcześniej (sam *E. coli*, ~131 skrzyżowań) model osiągał wyniki zbliżone do heurystyki. Dodanie danych z drożdży (636 dodatkowych labeled skrzyżowań z innego organizmu) poprawiło generalizację - model nauczył się cech sekwencji niezależnych od konkretnego genomu.
+#### Diagnoza: coverage jako shortcut
 
-**Early stopping** nastąpił w epoce 13 (brak poprawy przez 10 epok od epoki 3), co sugeruje że przy ~789 labeled przykładach model osiąga swoje optimum szybko. Dalszy wzrost jakości wymagałby zwiększenia zbioru treningowego (więcej genomów lub wyższe `--coverage`).
+Test polegal na trenowaniu modelu na tym samym foldzie z i bez cech pokrycia:
 
+| Konfiguracja | Junc acc | vs baseline (val fold) | Best epoch |
+|---|---|---|---|
+| Baseline (max-cov, val fold) | 58,9% | - | - |
+| Model z pokryciem (use_cov=True) | 57,1% | -1,8 pp | 1 |
+| Model bez pokrycia (use_cov=False) | 56,5% | -2,4 pp | 6 |
+
+`best_epoch=1` z wlaczona cecha pokrycia wskazuje ze model w pierwszej epoce uczy sie heurystyki max-coverage (ta sama co baseline) i przestaje poprawiac wynik. Bez coverage model jest zmuszony szukac sygnalu w sekwencji - staje sie wyrazniejszy po epoce 6, ale nadal nie bije baseline.
+
+Roznica miedzy konfiguracjami z i bez pokrycia wynosi tylko 0,6 pp, co oznacza ze CNN sekwencyjny uczy sie czegoś z sekwencji DNA, ale sygnał jest słabszy niz prosta heurystyka pokrycia.
+
+#### Sweep dlugosci kontekstu
+
+Test context_len ∈ {100, 150, 200, 250} przy embed_dim=64, use_cov=False, seed=42 (fold 1 z CV):
+
+| context_len | Junc acc | vs baseline (val fold) | Best epoch |
+|---|---|---|---|
+| 100 bp | 56,5% | -2,4 pp | 6 |
+| **150 bp** | **58,4%** | **-0,5 pp** | **8** |
+| 200 bp | 57,2% | -1,6 pp | 3 |
+| 250 bp | 58,0% | -0,9 pp | 6 |
+
+Srednia dlugosc kontekstu w danych wynosi 44,7 bp, wiec wszystkie testowane wartosci to nadmiarowe okno (padding). Wyniki nie sa monotoniczne: 150 bp daje najlepszy wynik, a 200 bp spada - roznice rzedu 1 pp mieszcza sie czesciowo w szumie statystycznym (788 junctions w val foldzie, 1% ~ 8 junctions).
+
+Kluczowe spostrzezenie: **context_len=150 prawie osiaga baseline (-0,5 pp)**, co oznacza ze CNN sekwencyjny potrafi wyciagnac sygnał z sekwencji DNA przy odpowiedniej dlugosci okna. Architektura nie osiagnela twardego sufitu - potrzebuje odpowiedniego rozmiaru kontekstu.
+
+Dalszy wzrost dokladnosci moze zapewnic lepsza architektura lub trening na wielu organizmach jednoczesnie (transfer learning). Wiarygodny test transferu wymaga jednak osobnego zbioru walidacyjnego z innego organizmu i 5-fold CV - nie zostal przeprowadzony w ramach tego etapu projektu.
+
+#### Analiza bledow: dokladnosc vs rzeczywista dlugosc kontekstu
+
+Dodatkowy test na foldzie 1 (ctx=150, use_cov=False): model uczony i ewaluowany, a nastepnie junctiony val foldzie pogrupowane po rzeczywistej dlugosci `context_seq`:
+
+| Bin (bp) | n | Model | Baseline | delta |
+|---|---|---|---|---|
+| 20-30 | 276 | 62,7% | 63,0% | -0,4 pp |
+| 30-40 | 54 | 55,6% | 72,2% | -16,7 pp |
+| 40-50 | 52 | 57,7% | 63,5% | -5,8 pp |
+| 50-60 | 29 | 58,6% | 55,2% | +3,4 pp |
+| 60-80 | 28 | 53,6% | 53,6% | +0,0 pp |
+| >80 | 349 | 55,9% | 53,6% | +2,3 pp |
+
+Srednia dlugosc kontekstu (44,7 bp) jest mylaaca, bo rozklad jest **bimodalny**: 35% junctionow ma kontekst 20-30 bp, a 44% ma kontekst powyzej 80 bp. Typowy junction to albo ten tuz po innym skrzyzowaniu (krotki kontekst), albo glęboko w dlugim kontigu (dlugi kontekst). Przedzialy 30-60 bp lacznie maja jedynie ~18% danych.
+
+Na dlugich kontekstach (>80 bp, n=349) model nieznacznie bije baseline (+2,3 pp) - CNN ma wiecej sekwencji do analizy i wyciaga z niej sygnał. Na krotkich kontekstach (20-30 bp, n=276) model prawie wyrownuje baseline (-0,4 pp) - obu metody ogranicza brak informacji w krotkim fragmencie sekwencji. Wynik w przedziale 30-40 bp (-16,7 pp) jest najgorszy, ale przy n=54 jest statystycznie niegodny (1 pp ~ 0,5 junctionow).
 
 
 
