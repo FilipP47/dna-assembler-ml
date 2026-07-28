@@ -113,7 +113,7 @@ impl TrainingDataGenerator {
              branch_G_seq,branch_G_cov,\
              branch_T_seq,branch_T_cov,\
              ground_truth,gt_ambiguous,\
-             cov_ratio_max,total_reads,k"
+             cov_ratio_max,total_reads,k,repeat_len"
         )?;
 
         Ok(Self {
@@ -226,8 +226,10 @@ impl TrainingDataGenerator {
 
         let (gt, gt_amb) = ground_truth.to_csv_value();
 
+        let repeat_len = self.upstream_repeat_len(graph, node_id);
+
         let row = format!(
-            "{},{},{},{},{},{},{},{},{},{},{:.4},{},{}",
+            "{},{},{},{},{},{},{},{},{},{},{:.4},{},{},{}",
             self.stats.total_junctions - 1,
             contig_id,
             depth,
@@ -241,9 +243,54 @@ impl TrainingDataGenerator {
             cov_ratio_max,
             total_reads,
             self.k,
+            repeat_len,
         );
         writeln!(self.writer, "{}", row)?;
         Ok(())
+    }
+
+    /// Length (in backward steps / bases) of the repeat region preceding this junction.
+    ///
+    /// Walks backward from the junction node along the unique incoming path, counting
+    /// steps until it reaches an in-junction (a node with `in_degree >= 2`, where two
+    /// genomic copies merge into the shared repeat) or a source. That merge point is
+    /// where the unique upstream flanks diverge, so the returned count is how many bases
+    /// of shared repeat sit between the junction and the first position that could
+    /// distinguish which genomic copy the path came from.
+    ///
+    /// A visited set guards against cycles; the walk is capped so pathological loops
+    /// terminate. A value below the context window means the disambiguating flank is
+    /// captured (typical of `Known` labels); a value at/above it means the whole context
+    /// is inside the repeat (typical of `Ambiguous`).
+    fn upstream_repeat_len(&self, graph: &DeBruijnGraph, node_id: &NodeId) -> usize {
+        const CAP: usize = 300;
+        let mut current = node_id.clone();
+        let mut visited: std::collections::HashSet<NodeId> = std::collections::HashSet::new();
+        let mut steps = 0;
+
+        while steps < CAP {
+            if !visited.insert(current.clone()) {
+                break; // cycle
+            }
+            let node = match graph.nodes.get(&current) {
+                Some(n) => n,
+                None => break,
+            };
+            if node.in_degree >= 2 || node.in_degree == 0 {
+                break; // merge point (flanks diverge) or source
+            }
+            let in_edge = match node.in_edges.iter().flatten().next() {
+                Some(e) => e,
+                None => break,
+            };
+            let edge = match graph.edges.get(in_edge) {
+                Some(e) => e,
+                None => break,
+            };
+            current = edge.from.clone();
+            steps += 1;
+        }
+        steps
     }
 
     /// Walk along `first_edge` for up to `branch_len` steps, collecting one base per step.

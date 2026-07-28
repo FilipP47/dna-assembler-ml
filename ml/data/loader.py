@@ -146,7 +146,7 @@ def load_training_csv(
     total_rows = df.height
     logger.info("Loaded %d rows total", total_rows)
 
-    int_cols = ["junction_id", "contig_id", "depth_in_contig", "out_degree", "in_degree", "total_reads", "k"]
+    int_cols = ["junction_id", "contig_id", "depth_in_contig", "out_degree", "in_degree", "total_reads", "k", "repeat_len"]
     int_cols = [c for c in int_cols if c in df.columns]
     float_cols = ["cov_ratio_max"]
     cov_cols = [f"branch_{b}_cov" for b in BASES]
