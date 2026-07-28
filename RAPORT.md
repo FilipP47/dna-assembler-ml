@@ -150,13 +150,13 @@ Głównym wyzwaniem jest wysoki odsetek skrzyżowań **ambiguous** - sięgający
 
 #### Statystyki zbioru treningowego
 
-Aktualny zbior danych to *S. cerevisiae* S288C wygenerowany potokiem Rust z wyzszym pokryciem niz wczesniejsze eksperymenty:
+Aktualny zbior danych to *S. cerevisiae* S288C wygenerowany potokiem Rust z pokryciem 100x (wyzszym niz wczesniejsze eksperymenty):
 
 | Organizm | Rozmiar genomu | Wiersze w CSV | **Labeled** | Ambiguous |
 |---|---|---|---|---|
-| *S. cerevisiae* S288C | 12,1 Mbp | 10 840 | **3 939 (36,3%)** | 5 496 (50,7%) |
+| *S. cerevisiae* S288C | 12,1 Mbp | 10 840 | **3 965 (36,6%)** | 5 470 (50,5%) |
 
-Wiersze nieoznaczone (10 840 - 3 939 - 5 496 = 1 405) to skrzyzowania odfiltrowane przez minimalne wymagania dlugosci sekwencji (context >= 10 bp, branch >= 5 bp). Wyzszy odsetek labeled (36% vs ~17% w starszym przebiegu) wynika z wyzszego pokrycia odczytow: wiecej odczytow na kazda pozycje genomu oznacza ze nawet krotsze konteksty wystarczaja do jednoznacznego wskazania miejsca w genomie referencyjnym.
+Wiersze nieoznaczone (10 840 - 3 965 - 5 470 = 1 405) to skrzyzowania odfiltrowane przez minimalne wymagania dlugosci sekwencji (context >= 10 bp, branch >= 5 bp). Wyzszy odsetek labeled (36% vs ~17% w starszym przebiegu) wynika z wyzszego pokrycia odczytow: wiecej odczytow na kazda pozycje genomu oznacza ze nawet krotsze konteksty wystarczaja do jednoznacznego wskazania miejsca w genomie referencyjnym.
 
 We wczesniejszym eksperymencie (raport ponizej) uzywano lacznie *E. coli* + *S. cerevisiae* z lacznie 789 labeled skrzyzowaniami.
 
@@ -182,7 +182,7 @@ Wyniki 5-fold CV przy dwoch wartosciach k (stratyfikowany podzial, seed=42):
 
 | Konfiguracja | Labeled | Baseline | Model 5-fold CV | vs baseline |
 |---|---|---|---|---|
-| k=21, *S. cerevisiae* | 3 939 | 58,4% | **57,5% ± 0,9%** | -0,9 pp |
+| k=21, *S. cerevisiae* | 3 965 | 57,7% | **57,5% ± 0,9%** | -0,2 pp |
 | k=31, *S. cerevisiae* | 590 | 67,6% | **64,9% ± 2,3%** | -2,7 pp |
 
 k=31 ma wyzszy baseline (67,6%) bo przy dluzszym k-merze skrzyzowania sa rzadsze i bardziej specyficzne - pokrycie jest tam silniejszym sygnalem. k=21 jest lepszy do treningu: 6,7x wiecej probek, nizsza wariancja wynikow miedzy foldami.
@@ -191,11 +191,11 @@ Wczesniejszy wynik 71,3% (pojedynczy random split na danych k=31 z E. coli + S. 
 
 ### Szczegolowe wyniki: S. cerevisiae k=21, 5-fold CV
 
-Obecny zbior danych: 3 939 labeled skrzyzowań z jednego organizmu (*S. cerevisiae*, k=21). Ewaluacja opiera sie na stratyfikowanym 5-fold CV (seed=42).
+Obecny zbior danych: 3 965 labeled skrzyzowań z jednego organizmu (*S. cerevisiae*, k=21). Ewaluacja opiera sie na stratyfikowanym 5-fold CV (seed=42).
 
 | Metryka | Wartość |
 |---|---|
-| Baseline (max-coverage, globalny) | **58,4%** (2 299/3 939) |
+| Baseline (max-coverage, globalny) | **57,7%** (2 287/3 965) |
 | Baseline (max-coverage, val fold) | ~58,9% (srednia po foldach) |
 | Val. junction accuracy - 5-fold | **57,5% ± 0,9%** |
 | Val. F1 - 5-fold | 0,744 ± 0,010 |
@@ -248,6 +248,88 @@ Dodatkowy test na foldzie 1 (ctx=150, use_cov=False): model uczony i ewaluowany,
 Srednia dlugosc kontekstu (44,7 bp) jest mylaaca, bo rozklad jest **bimodalny**: 35% junctionow ma kontekst 20-30 bp, a 44% ma kontekst powyzej 80 bp. Typowy junction to albo ten tuz po innym skrzyzowaniu (krotki kontekst), albo glęboko w dlugim kontigu (dlugi kontekst). Przedzialy 30-60 bp lacznie maja jedynie ~18% danych.
 
 Na dlugich kontekstach (>80 bp, n=349) model nieznacznie bije baseline (+2,3 pp) - CNN ma wiecej sekwencji do analizy i wyciaga z niej sygnał. Na krotkich kontekstach (20-30 bp, n=276) model prawie wyrownuje baseline (-0,4 pp) - obu metody ogranicza brak informacji w krotkim fragmencie sekwencji. Wynik w przedziale 30-40 bp (-16,7 pp) jest najgorszy, ale przy n=54 jest statystycznie niegodny (1 pp ~ 0,5 junctionow).
+
+#### Kiedy wygrywa heurystyka, a kiedy model? Analiza wg pewnosci pokrycia
+
+Model i heurystyka moga miec podobna srednia, a rozne rozklady bledow. Sprawdzono to predykcja out-of-fold: kazdy z 3 965 labeled junctionow dostal predykcje z modelu, ktory go nie widzial w treningu (5-fold CV, ctx=150, use_cov=False - czysto sekwencyjny, seed=42). Junctiony pogrupowano po `cov_ratio_max` (udzial dominujacej galezi w pokryciu; 0,50 to remis, 1,0 to jedna galaz bierze wszystko).
+
+| cov_ratio_max | n | Model | Heurystyka | delta |
+|---|---|---|---|---|
+| <0,55 | 2 213 | 50,7% | 49,3% | +1,4 pp |
+| 0,55-0,60 | 510 | 51,0% | 51,2% | -0,2 pp |
+| 0,60-0,65 | 181 | 63,0% | 64,1% | -1,1 pp |
+| 0,65-0,70 | 296 | 67,2% | 71,3% | -4,1 pp |
+| 0,70-0,80 | 350 | 69,1% | 73,1% | -4,0 pp |
+| >=0,80 | 415 | 83,4% | 84,8% | -1,4 pp |
+| **Ogolem** | **3 965** | **57,6%** | **57,7%** | **-0,1 pp** |
+
+Hipoteza brzmiala: w niejednoznacznych przypadkach (pokrycie 51 do 49) heurystyka jest rzutem moneta, ale moze model wyciagnie sygnał z sekwencji. Dane jej nie potwierdzaja. W binie `<0,55` model daje 50,7% - ten sam poziom losowy co heurystyka (49,3%). Pierwsze 100-150 bp kazdej galezi nie rozroznia tych skrzyzowan. We wszystkich pozostalych binach heurystyka jest nieznacznie lepsza. Poniewaz `cov_ratio_max` to udzial dominujacej galezi (max/suma), wartosc ponizej 0,55 oznacza faktyczny remis: 93% skrzyzowan w tym binie ma out-degree 2, a empiryczna dokladnosc heurystyki na poziomie 50% potwierdza ze sa to genuinnie niejednoznaczne przypadki.
+
+Rozklad zgodnosci obu metod na wszystkich 3 965 junctionach:
+
+| Przypadek | n | Udzial |
+|---|---|---|
+| Oba dobrze | 1 522 | 38,4% |
+| Tylko model | 760 | 19,2% |
+| Tylko heurystyka | 765 | 19,3% |
+| Oba zle | 918 | 23,2% |
+
+Metody nie zgadzaja sie na 38,5% skrzyzowan, ale rozklad jest niemal symetryczny: model ratuje 760 przypadkow, ktore heurystyka myli, a psuje 765, ktore heurystyka trafia. Gdyby dalo sie z gory wskazac ktora metoda ma racje, mozna by wybierac lepsza per skrzyzowanie i osiagnac gorna granice (oracle): 38,4% + 19,2% + 19,3% = **76,8%**.
+
+#### Czy niezgodnosci sa przewidywalne? Test routera
+
+Kluczowe pytanie: czy te 19% "tylko model" da sie odroznic z gory od przypadkow gdzie model sie myli? Jesli tak, hybryda dochodzi do 77%. Test: na przypadkach spornych (1 525 skrzyzowan, gdzie racje ma dokladnie jedna metoda) wytrenowano klasyfikator (regresja logistyczna, 5-fold CV) przewidujacy ktora metoda wygra, na cechach: `cov_ratio_max`, out-degree, dlugosc kontekstu, liczba odczytow oraz **pewnosc samego modelu** (margines `|score_A - score_B|`).
+
+| Metryka | Wartość |
+|---|---|
+| AUC klasyfikatora na przypadkach spornych | **0,497** |
+| Wyuczony router (5-fold) | 57,0% |
+| Heurystyka (zawsze) | 57,7% |
+| Oracle (idealny router) | 76,8% |
+
+AUC 0,497 to praktycznie 0,5 - **niezgodnosci sa nieprzewidywalne**. Przypadki gdzie wygrywa model sa statystycznie nieodroznialne od tych, gdzie model przegrywa. Nawet wlasna pewnosc modelu (margines) nie koreluje z trafnoscia - model "nie wie, kiedy wie". Wyuczony router osiaga 57,0%, czyli **ponizej heurystyki**: skoro sygnalu nie ma, routowanie tylko dokłada szum. Dodanie `repeat_len` (dlugosci powtorzenia) jako kolejnej cechy routera tez nie pomaga (57,1%, nadal ponizej heurystyki).
+
+Wniosek: oracle 76,8% pokazuje ze teoretycznie informacja na poprawe istnieje, ale jest niedostepna z obecnych cech i tej architektury. Sufit ~58% nie jest artefaktem zlego laczenia metod - to realna granica tego zbioru danych.
+
+Prawdziwy sufit to sam zbior danych: **56% labeled junctionow ma `cov_ratio_max < 0,55`**, a tam ani pokrycie, ani sekwencja nie niosą sygnalu - obie metody sa na poziomie losowym. Podobne wyniki srednie nie wynikaja z tego, ze metody sa mocne w roznych miejscach, tylko z tego, ze na wiekszosci trudnych skrzyzowan obie zawodza jednakowo, w sposob ktorego nie da sie przewidziec.
+
+Trafnosc modelu jest przewidywalna, ale tylko gruboziarnisto i tylko przez `cov_ratio_max`. Klasyfikator przewidujacy `model_ok` z wszystkich cech osiaga AUC 0,614, a z samej `cov_ratio_max` niemal tyle samo (0,615) - pozostale cechy, wlacznie z pewnoscia modelu, nie wnosza nic. Model dziala jak "kategoria latwosci": na latwych skrzyzowaniach (`cov_ratio_max >= 0,80`) trafia 83%, na trudnych (`< 0,55`) tylko 51%. Ale **wewnatrz** trudnego binu ktore konkretnie skrzyzowania trafi jest juz czysto losowe (AUC 0,497). Model nie ma wlasnej strefy kompetencji niezaleznej od heurystyki - jest dobry dokladnie tam, gdzie latwa jest tez heurystyka.
+
+#### Natura sufitu: trudne skrzyzowania to krotkie powtorzenia
+
+Ground truth wyznaczany jest przez wyszukanie `context_seq` (do 100 bp zlozonych przed skrzyzowaniem) w genomie referencyjnym: jesli wszystkie wystapienia kontekstu prowadza do tego samego nastepnego nukleotydu, etykieta jest `Known`, jesli do roznych - `Ambiguous` (odrzucone). Poniewaz odczyty sa bezbledne, galaz istnieje tylko gdy jest realna kontynuacja w genomie - out-degree 2 oznacza, ze **oba warianty naprawde wystepuja** (powtorzenie: 20-mer wezla pojawia sie w dwoch miejscach, raz po nim idzie A, raz B).
+
+To wyjasnia dlaczego trudne skrzyzowania (`cov_ratio_max < 0,55`) sa trudne. Obie galezie sa realne i podobnie pokryte, wiec heurystyka max-coverage jest rzutem moneta. Etykieta `Known` istnieje tylko dlatego, ze 100 bp kontekstu wychodzi poza obszar powtorzenia i staje sie unikalne w referencji - sa to wiec **krotkie powtorzenia** (krotsze niz ~100 bp). Dluzsze powtorzenia daja `Ambiguous` i trafiaja do odrzuconych 56% zbioru.
+
+Teze te potwierdza cecha `repeat_len` dodana do generatora: idac wstecz od skrzyzowania po grafie liczy sie kroki do najblizszego wezla, w ktorym schodza sie dwie drogi (in-degree >= 2), czyli do miejsca gdzie unikalne flanki obu kopii zlaczaja sie we wspolne powtorzenie. Rozklad `repeat_len` jest jednoznacznie rozdzielony:
+
+| repeat_len | labeled | ambiguous |
+|---|---|---|
+| <10 | 3 849 | 3 492 |
+| 10-20 | 46 | 689 |
+| 20-40 | 43 | 569 |
+| 40-60 | 19 | 301 |
+| 60-100 | 8 | 196 |
+| >=100 | 0 | 223 |
+
+Labeled to niemal zawsze krotkie powtorzenia (mediana 0, p95=5, maks 75), i **zaden** labeled nie ma `repeat_len >= 100`. Ambiguous maja dlugi ogon (mediana 5, p95=85, az 223 skrzyzowania z powtorzeniem >= 100). To bezposrednio potwierdza mechanizm: skrzyzowanie jest rozwiazywalne tylko gdy powtorzenie jest krotsze niz okno kontekstu.
+
+Wazny wniosek: dla labeled `repeat_len` wynosi zwykle 0, wiec baza rozrozniajaca lezy **tuz przy krawedzi** skrzyzowania i jest lokalnie dostepna dla modelu. Bariera nie jest wiec pozycja sygnalu (i nie usunie jej attention ani wieksza waga dla dalszych pozycji), tylko jego **nieuogolnialnosc**. Informacja rozstrzygajaca to "z ktorej z dwoch kopii genomu pochodzi ten dokladny kontekst" - fakt o ukladzie konkretnego genomu, a nie prawidlowosc sekwencji. Ground truth zna odpowiedz, bo robi dokladny lookup calej referencji (pamiec genomu); model probuje nauczyc sie uogolnialnej reguly, ale mapowanie "te poprzedzajace bazy -> galaz A" jest arbitralne i nie przenosi sie na powtorzenia walidacyjne, inne niz treningowe. Dlatego na krotkich powtorzeniach model zgaduje - potwierdza to AUC 0,497 wewnatrz trudnego binu.
+
+Trafnosc w podziale na `repeat_len` (labeled, out-of-fold) pokazuje ze model nie ma przewagi w zadnym przedziale:
+
+| repeat_len | n | Model | Heurystyka | delta |
+|---|---|---|---|---|
+| 0 | 3 365 | 57,2% | 56,9% | +0,3 pp |
+| 1-2 | 279 | 59,9% | 59,1% | +0,7 pp |
+| 3-5 | 129 | 62,0% | 62,0% | +0,0 pp |
+| 6-10 | 81 | 59,3% | 65,4% | -6,2 pp |
+| 11-20 | 43 | 62,8% | 72,1% | -9,3 pp |
+| >=21 | 68 | 52,9% | 63,2% | -10,3 pp |
+
+Przy krotkich powtorzeniach (0-5) model remisuje z heurystyka, a przy dluzszych (>=6) wyraznie przegrywa. (Przy zanizonym pokryciu 30x pojawia sie pozorna przewaga modelu przy `repeat_len` 1-10, ale znika przy prawidlowym pokryciu 100x - byla artefaktem szumu pokrycia, ktory oslabial heurystyke.)
+
+Prawdziwe rozstrzygniecie tych przypadkow lezy nie w architekturze okna kontekstu, lecz w informacji na poziomie odczytow: odczyt 150 bp przekraczajacy cale powtorzenie (flank + R + kontynuacja) fizycznie swiadczy, ktora kontynuacja jest wlasciwa. To standardowy read threading, ktorego graf de Bruijn nie zachowuje, bo tnie odczyty na k-mery i gubi ich spojnosc. Kierunek poprawy to wiec przywrocenie informacji odczytowej (pary odczytow, read threading, dluzsze odczyty), a nie samo dostrajanie CNN na oknie przy skrzyzowaniu.
 
 
 
