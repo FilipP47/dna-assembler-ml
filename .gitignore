@@ -5,10 +5,9 @@ Cargo.lock
 # Python
 ml/.venv/
 ml/venv/
-ml/__pycache__/
-ml/**/__pycache__/
-ml/**/*.pyc
-ml/**/*.pyo
+**/__pycache__/
+*.pyc
+*.pyo
 ml/.pytest_cache/
 ml/.mypy_cache/
 ml/.ruff_cache/
@@ -52,3 +51,4 @@ Thumbs.db
 run.sh
 
 tmp*
+ml/experiments/oof_predictions.csv

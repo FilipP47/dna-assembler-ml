@@ -10,3 +10,6 @@ wandb>=0.17
 mkdocs>=1.5
 mkdocs-material>=9.0
 mkdocstrings[python]>=0.24
+pyyaml>=6.0
+ruff>=0.16
+pytest>=8.0
