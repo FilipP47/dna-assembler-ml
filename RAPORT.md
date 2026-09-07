@@ -232,6 +232,8 @@ Kluczowe spostrzezenie: **context_len=150 prawie osiaga baseline (-0,5 pp)**, co
 
 Dalszy wzrost dokladnosci moze zapewnic lepsza architektura lub trening na wielu organizmach jednoczesnie (transfer learning). Wiarygodny test transferu wymaga jednak osobnego zbioru walidacyjnego z innego organizmu i 5-fold CV - nie zostal przeprowadzony w ramach tego etapu projektu.
 
+Test transferu miedzy genomami zostal przeprowadzony w nastepnym etapie i opisany w `RAPORT_TRANSFER.md`: trening na ~90 szczepach E. coli bije baseline o ~15 pp na nowych szczepach tego samego gatunku (grupa A), ale efekt nie rozciaga sie na cala rodzine Enterobacteriaceae (grupa B).
+
 #### Analiza bledow: dokladnosc vs rzeczywista dlugosc kontekstu
 
 Dodatkowy test na foldzie 1 (ctx=150, use_cov=False): model uczony i ewaluowany, a nastepnie junctiony val foldzie pogrupowane po rzeczywistej dlugosci `context_seq`:
