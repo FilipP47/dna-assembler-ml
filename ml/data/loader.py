@@ -122,7 +122,17 @@ def load_training_csv(
     if csv_path.is_dir():
         csv_files = sorted(csv_path.glob("*.csv"))
         if not csv_files:
-            raise FileNotFoundError(f"No CSV files found in directory: {csv_path}")
+            # A directory of per-genome subdirectories (as produced by the
+            # group_a data generator) is a common mistake - point at it.
+            nested = list(csv_path.rglob("*.csv"))
+            hint = (
+                f" Found {len(nested)} CSV file(s) in subdirectories, but this loader "
+                "only looks at the top level - point csv_path at the directory that "
+                "directly contains the CSVs."
+                if nested
+                else ""
+            )
+            raise FileNotFoundError(f"No CSV files found in directory: {csv_path}.{hint}")
         logger.info("Loading %d CSV files from %s", len(csv_files), csv_path)
         parts = []
         for i, f in enumerate(csv_files):
