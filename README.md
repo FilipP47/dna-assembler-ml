@@ -34,4 +34,8 @@ Generowanie danych treningowych (cerevisiae, k=21, pokrycie 100x):
   --k 21 --coverage 100 --gen-train-data --results-dir results/cerevisiae_k21
 ```
 
+Srodowisko Pythona (`ml/`): `cd ml && uv sync`. Na maszynie z GPU:
+`cd ml && uv sync --no-group cpu --group cu128`.
+
 Uruchomienie skryptu Pythona: `cd ml && uv run python3 <sciezka>`.
+Testy: `cd ml && uv run pytest`.

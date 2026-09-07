@@ -13,9 +13,8 @@ wykluczyc zapamietywanie prawie-duplikatow. Kontekst i wyniki:
 - `mash` w PATH (`sudo apt install mash` - nowa zaleznosc CLI, potrzebna bo
   sama taksonomia nie rozroznia w obrebie jednego gatunku; patrz
   `select_heldout.py`).
-- `ml/.venv` przygotowane wedlug reszty projektu
-  (`cd ml && uv pip install -r requirements.txt`) - potrzebne do
-  `run_group_a.py` (polars, pyyaml) i do `ml/main.py` (torch).
+- `ml/.venv` przygotowane wedlug reszty projektu (`cd ml && uv sync`) -
+  potrzebne do `run_group_a.py` (polars, pyyaml) i do `ml/main.py` (torch).
 
 ## Kolejnosc uruchomienia
 
