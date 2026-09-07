@@ -6,7 +6,9 @@ Optimised for Polars DataFrames and RAM-efficient one-hot encoding
 
 from __future__ import annotations
 
+import hashlib
 import logging
+import random
 from typing import Dict, List, NamedTuple
 
 import numpy as np
@@ -118,6 +120,7 @@ class JunctionDataset(Dataset):
         branch_len: int = 100,
         augment: bool = False,
         use_cov_feat: bool = True,
+        pair_seed: int = 0,
     ):
         """Initialise the dataset and build all sample pairs.
 
@@ -132,11 +135,18 @@ class JunctionDataset(Dataset):
                 reverse-complement strands).
             use_cov_feat: When ``False``, coverage features are replaced with
                 an empty tensor (``cov_feat_dim = 0``).
+            pair_seed: Seed for the per-pair position assignment (which of the
+                correct/wrong sequences lands on ``branch_a``). The assignment
+                is derived deterministically from ``(pair_seed, junction_id,
+                wrong-branch index)``, so it is balanced in expectation yet
+                reproducible across runs and worker counts, independent of the
+                ``augment`` flag.
         """
         self.context_len  = context_len
         self.branch_len   = branch_len
         self.augment      = augment
         self.use_cov_feat = use_cov_feat
+        self.pair_seed    = pair_seed
 
         self.samples: List[RawSample] = []
         self._build_pairs(df)
@@ -145,6 +155,28 @@ class JunctionDataset(Dataset):
             f"JunctionDataset: {len(self.samples)} pairs built from {df.height} junctions"
             f" (augment={augment})"
         )
+
+    def _position_swapped(self, junction_id: int, wrong_idx: int) -> bool:
+        """Decide whether the correct branch should start on ``branch_b``.
+
+        The choice is a deterministic function of ``(pair_seed, junction_id,
+        wrong_idx)`` rather than of a shared iteration-order RNG state, so it is
+        stable across runs, DataLoader worker counts, and row ordering.
+
+        Args:
+            junction_id: Identifier of the source junction.
+            wrong_idx: Index of the wrong branch within the junction's list of
+                wrong branches (0 when there is only one).
+
+        Returns:
+            ``True`` if the base pair should place the correct branch on
+            ``branch_b`` (base label 1), ``False`` to keep it on ``branch_a``
+            (base label 0).
+        """
+        key = f"{self.pair_seed}:{junction_id}:{wrong_idx}".encode("ascii")
+        digest = hashlib.sha256(key).digest()
+        rng = random.Random(int.from_bytes(digest[:8], "big"))
+        return rng.random() < 0.5
 
     def _build_pairs(self, df: pl.DataFrame) -> None:
         """Populate ``self.samples`` by iterating over the Polars DataFrame.
@@ -177,38 +209,49 @@ class JunctionDataset(Dataset):
 
             cov_tensor = coverage_features(row) if self.use_cov_feat else torch.zeros(0)
 
-            for wrong_seq in wrong_seqs:
-                # Base pair: A=correct, B=wrong -> label=0
+            for wrong_idx, wrong_seq in enumerate(wrong_seqs):
+                # Assign which sequence starts on branch_a for every dataset, not
+                # only augment=True. Without this an augment=False set (val in
+                # train.py, test in evaluate.py) would be 100% label=0 instead
+                # of balanced in expectation.
+                if self._position_swapped(junction_id, wrong_idx):
+                    a_seq, b_seq, base_label = wrong_seq, correct_seq, 1
+                else:
+                    a_seq, b_seq, base_label = correct_seq, wrong_seq, 0
+
+                # Base pair, in the drawn position.
                 self.samples.append(
-                    RawSample(context_seq, correct_seq, wrong_seq, cov_tensor, 0, junction_id)
+                    RawSample(context_seq, a_seq, b_seq, cov_tensor, base_label, junction_id)
                 )
 
                 if self.augment:
-                    # Position swap: A=wrong, B=correct -> label=1
+                    swap_label = 1 - base_label
+
+                    # Position swap of the base pair.
                     self.samples.append(
-                        RawSample(context_seq, wrong_seq, correct_seq, cov_tensor, 1, junction_id)
+                        RawSample(context_seq, b_seq, a_seq, cov_tensor, swap_label, junction_id)
                     )
 
-                    # Reverse-complement of base pair -> label=0
+                    # Reverse-complement of the base pair.
                     self.samples.append(
                         RawSample(
                             reverse_complement(context_seq),
-                            reverse_complement(correct_seq),
-                            reverse_complement(wrong_seq),
+                            reverse_complement(a_seq),
+                            reverse_complement(b_seq),
                             cov_tensor,
-                            0,
+                            base_label,
                             junction_id
                         )
                     )
 
-                    # Reverse-complement of swapped pair -> label=1
+                    # Reverse-complement of the position-swapped pair.
                     self.samples.append(
                         RawSample(
                             reverse_complement(context_seq),
-                            reverse_complement(wrong_seq),
-                            reverse_complement(correct_seq),
+                            reverse_complement(b_seq),
+                            reverse_complement(a_seq),
                             cov_tensor,
-                            1,
+                            swap_label,
                             junction_id
                         )
                     )

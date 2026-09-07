@@ -73,6 +73,7 @@ def evaluate_model(args) -> dict:
         branch_len=getattr(args, "branch_len", 100),
         augment=False,
         use_cov_feat=use_cov,
+        pair_seed=getattr(args, "seed", 0),
     )
     loader = DataLoader(
         dataset,
