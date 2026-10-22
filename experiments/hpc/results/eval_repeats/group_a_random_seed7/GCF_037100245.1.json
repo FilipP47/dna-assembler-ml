@@ -1,0 +1,13 @@
+{
+  "checkpoint": "../results/checkpoints_repeats/mv1_siamese_cnn_group_a_random_seed7_best.pt",
+  "eval_csv": "../data/training/group_a/random_test/GCF_037100245.1_training.csv",
+  "organism": "GCF_037100245.1",
+  "junction_accuracy": 0.717138,
+  "pair_accuracy": 0.7232,
+  "f1": 0.71405,
+  "precision": 0.681388,
+  "recall": 0.75,
+  "loss": 0.498372,
+  "n_junctions": 601,
+  "n_pairs": 625
+}

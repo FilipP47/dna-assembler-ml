@@ -52,3 +52,12 @@ run.sh
 
 tmp*
 ml/experiments/oof_predictions.csv
+
+# experiments/hpc: duże pliki wejściowe z NCBI (pobierane skryptami)
+experiments/hpc/data/**/assembly_summary*.txt
+experiments/hpc/data/**/complete_all.tsv
+experiments/hpc/data/**/*_candidates.tsv
+
+# małe wyniki ewaluacji z HPC (dowód liczb z raportu) - śledzone
+!experiments/hpc/results/
+experiments/hpc/results/checkpoints*/
