@@ -3,18 +3,18 @@
 Jak analyze_repeat_len.py, ale przechodzi przez wszystkie 4 warianty
 (grupa A/B x farthest/random) i drukuje porownawcza tabele.
 """
+import os
 import sys
 from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 import polars as pl
 
-sys.path.insert(0, "/scratch/fpietrew/dna-assembler/ml")
+BASE = Path(os.environ.get("ROOT", Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(BASE / "ml"))
 from data.loader import load_training_csv
 from data.dataset import JunctionDataset, collate_junction_batch
 from models.mv1 import Mv1JunctionModel
-
-BASE = Path("/scratch/fpietrew/dna-assembler")
 
 VARIANTS = {
     "group_a_farthest": (BASE / "data/training/group_a/farthest_test",

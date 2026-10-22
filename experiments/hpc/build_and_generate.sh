@@ -9,8 +9,11 @@
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
 
-source $HOME/.cargo/env
-cd /scratch/fpietrew/dna-assembler
+set -euo pipefail
+source "$HOME/.cargo/env"
+source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+
+cd "$ROOT"
 cargo build --release
 
 ./target/release/dna-assembler pipeline \

@@ -5,6 +5,7 @@ testowym grupy A (farthest). Analogiczne do sekcji RAPORT.md "Natura sufitu".
 
 Wymaga torch + polars (odpalic w dzialajacym venv, np. venv-analysis).
 """
+import os
 import sys
 from pathlib import Path
 import torch
@@ -13,13 +14,14 @@ from torch.utils.data import DataLoader
 import polars as pl
 import numpy as np
 
-sys.path.insert(0, "/scratch/fpietrew/dna-assembler/ml")
+ROOT = Path(os.environ.get("ROOT", Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(ROOT / "ml"))
 from data.loader import load_training_csv
 from data.dataset import JunctionDataset, collate_junction_batch
 from models.mv1 import Mv1JunctionModel
 
-TEST_DIR = Path("/scratch/fpietrew/dna-assembler/data/training/group_a/farthest_test")
-CKPT_PATH = Path("/scratch/fpietrew/dna-assembler/results/checkpoints/mv1_siamese_cnn_group_a_farthest_best.pt")
+TEST_DIR = ROOT / "data/training/group_a/farthest_test"
+CKPT_PATH = ROOT / "results/checkpoints/mv1_siamese_cnn_group_a_farthest_best.pt"
 
 device = torch.device("cpu")
 

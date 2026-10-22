@@ -1,9 +1,10 @@
 #!/bin/bash
 # Odpalic PO zakonczeniu generacji (na wezle loginowym, lekkie - tylko symlinki)
 set -euo pipefail
-cd /scratch/fpietrew/dna-assembler
+source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+cd "$ROOT"
 
-BASE=data/genomes_ecoli/output
+BASE=experiments/hpc/data/genomes_ecoli/output
 TRAIN_DIR=data/training/group_a
 
 for variant in farthest random; do

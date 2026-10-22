@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Zbiera wyniki solo baseline (val_junction_accuracy z metadanych checkpointow)."""
+import os
 import torch
 from pathlib import Path
 from collections import defaultdict
 import statistics
 
-ckpt_dir = Path("/scratch/fpietrew/dna-assembler/results/checkpoints_solo")
+ROOT = Path(os.environ.get("ROOT", Path(__file__).resolve().parents[2]))
+ckpt_dir = ROOT / "results/checkpoints_solo"
 
 # nazwa pliku: mv1_siamese_cnn_solo_<grp>_<acc>_seed<seed>_best.pt
 by_org = defaultdict(list)

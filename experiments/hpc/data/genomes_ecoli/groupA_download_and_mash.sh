@@ -10,8 +10,9 @@
 #SBATCH --time=03:00:00
 
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh"
 
-WORKDIR=/scratch/fpietrew/dna-assembler/data/genomes_ecoli
+WORKDIR="$ROOT/experiments/hpc/data/genomes_ecoli"
 cd "$WORKDIR"
 
 MIN_SIZE=4000000
@@ -66,11 +67,11 @@ echo "  Po filtrze rozmiaru: $n_filtered genomow"
 echo "[5/5] Liczenie sketchy i macierzy odleglosci Mash dla przefiltrowanych genomow..."
 while read -r acc; do
     if [ ! -f "sketches/${acc}.msh" ]; then
-        "$HOME/bin/mash" sketch -k 21 -s 10000 -o "sketches/${acc}" "fasta/${acc}.fna" 2>/dev/null
+        "$MASH_BIN" sketch -k 21 -s 10000 -o "sketches/${acc}" "fasta/${acc}.fna" 2>/dev/null
     fi
 done < filtered_accessions.txt
 
 find sketches -name "*.msh" | sort > sketch_list.txt
-"$HOME/bin/mash" triangle -l sketch_list.txt > distance_matrix_triangle.txt
+"$MASH_BIN" triangle -l sketch_list.txt > distance_matrix_triangle.txt
 
 echo "Gotowe. Kolejny krok: python3 select_split.py (na wezle loginowym, lekkie)"

@@ -1,8 +1,9 @@
 #!/bin/bash
 set -euo pipefail
-cd /scratch/fpietrew/dna-assembler
+source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+cd "$ROOT"
 
-BASE=data/genomes_enterobacteriaceae/output
+BASE=experiments/hpc/data/genomes_enterobacteriaceae/output
 TRAIN_DIR=data/training/group_b
 
 for variant in farthest random; do

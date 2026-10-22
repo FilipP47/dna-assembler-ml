@@ -1,10 +1,11 @@
 #!/bin/bash
 set -euo pipefail
-cd /scratch/fpietrew/dna-assembler
+source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+cd "$ROOT"
 
 for grp in a b; do
-    outdir="data/genomes_ecoli"
-    [ "$grp" = "b" ] && outdir="data/genomes_enterobacteriaceae"
+    outdir="experiments/hpc/data/genomes_ecoli"
+    [ "$grp" = "b" ] && outdir="experiments/hpc/data/genomes_enterobacteriaceae"
 
     cat "${outdir}/output/test_farthest_10.txt" "${outdir}/output/test_random_10.txt" \
         | sort -u > "${outdir}/solo_organisms.txt"

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Zbiera wyniki 12 powtorzen (4 warianty x 3 seedy) w tabele mean+/-std."""
 import json
+import os
 from pathlib import Path
 from collections import defaultdict
 import statistics
 
-base = Path("/scratch/fpietrew/dna-assembler/results/eval_repeats")
+ROOT = Path(os.environ.get("ROOT", Path(__file__).resolve().parents[2]))
+base = ROOT / "results/eval_repeats"
 variants = ["group_a_farthest", "group_a_random", "group_b_farthest", "group_b_random"]
 seeds = [42, 123, 7]
 

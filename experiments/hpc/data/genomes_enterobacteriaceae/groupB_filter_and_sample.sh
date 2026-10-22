@@ -10,8 +10,9 @@
 #SBATCH --time=01:00:00
 
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh"
 
-WORKDIR=/scratch/fpietrew/dna-assembler/data/genomes_enterobacteriaceae
+WORKDIR="$ROOT/experiments/hpc/data/genomes_enterobacteriaceae"
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"
 

@@ -4,13 +4,14 @@ Sprawdza co odroznia najlepsze organizmy (GCF_041005995.1, GCF_041316455.1)
 od reszty w group_a_farthest: statystyki repeat_len/cov_ratio_max z CSV,
 oraz odleglosc Mash do najblizszego sasiada w zbiorze treningowym (90 org.).
 """
+import os
 from pathlib import Path
 import polars as pl
 
-BASE = Path("/scratch/fpietrew/dna-assembler")
+BASE = Path(os.environ.get("ROOT", Path(__file__).resolve().parents[2]))
 TEST_DIR = BASE / "data/training/group_a/farthest_test"
-TRAIN_LIST = BASE / "data/genomes_ecoli/output/train_90_for_farthest_split.txt"
-DIST_MATRIX = BASE / "data/genomes_ecoli/distance_matrix_triangle.txt"
+TRAIN_LIST = BASE / "experiments/hpc/data/genomes_ecoli/output/train_90_for_farthest_split.txt"
+DIST_MATRIX = BASE / "experiments/hpc/data/genomes_ecoli/distance_matrix_triangle.txt"
 
 # Znana srednia celnosc per organizm (z collect_repeats.py, 3 seedy, farthest)
 KNOWN_ACCURACY = {

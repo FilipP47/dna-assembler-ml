@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Zbiera wszystkie wyniki evaluate (JSON per organizm) w jedna tabele CSV."""
 import json
+import os
 from pathlib import Path
 import sys
 
-base = Path("/scratch/fpietrew/dna-assembler/results")
+ROOT = Path(os.environ.get("ROOT", Path(__file__).resolve().parents[2]))
+base = ROOT / "results"
 variants = ["group_a_farthest", "group_a_random", "group_b_farthest", "group_b_random"]
 
 rows = []

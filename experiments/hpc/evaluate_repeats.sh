@@ -16,32 +16,10 @@ export PYTHONUNBUFFERED=1
 module load uv/0.11.2
 module load cuda/12.9
 
-cd /scratch/fpietrew/dna-assembler/ml
+DEVICE=cuda
+source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
 
-LINE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" ../repeat_variant_tasks.txt)
-VARIANT=$(echo "$LINE" | cut -d, -f1)
-DATA_PATH=$(echo "$LINE" | cut -d, -f2)
-SEED=$(echo "$LINE" | cut -d, -f3)
+export UV_PROJECT_ENVIRONMENT="$SLURM_SUBMIT_DIR/venv-evalrep-${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
+uv sync --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS
 
-TEST_DIR="../$(echo "$DATA_PATH" | sed 's/_train$/_test/')"
-CKPT="../results/checkpoints_repeats/mv1_siamese_cnn_${VARIANT}_seed${SEED}_best.pt"
-RESULTS_DIR="../results/eval_repeats/${VARIANT}_seed${SEED}"
-
-echo "[$(date +%T)] Ewaluacja ${VARIANT} seed=${SEED} na ${TEST_DIR}"
-mkdir -p "$RESULTS_DIR"
-
-VENV_DIR=$SLURM_SUBMIT_DIR/venv-evalrep-${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}
-uv venv "$VENV_DIR"
-source "$VENV_DIR/bin/activate"
-uv pip install -r requirements.txt
-
-for csv_file in "$TEST_DIR"/*.csv; do
-    acc=$(basename "$csv_file" _training.csv)
-    python3 main.py evaluate \
-        --model_path "$CKPT" \
-        --test_csv "$csv_file" \
-        --context_len 150 \
-        --output_json "${RESULTS_DIR}/${acc}.json"
-done
-
-echo "[$(date +%T)] Koniec: ${VARIANT} seed=${SEED}"
+bash "$HPC_DIR/tasks/eval_repeats.sh"

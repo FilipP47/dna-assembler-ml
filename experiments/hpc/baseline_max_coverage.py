@@ -8,6 +8,7 @@ Nie wymaga polars - czysty csv ze standardowej biblioteki.
 """
 import csv
 import json
+import os
 from pathlib import Path
 from collections import defaultdict
 
@@ -16,7 +17,8 @@ BASES = ["A", "C", "G", "T"]
 MIN_CONTEXT_LEN = 10  # domyslne z main.py evaluate
 MIN_BRANCH_LEN  = 5   # domyslne z main.py evaluate
 
-BASE_DIR = Path("/scratch/fpietrew/dna-assembler/data/training")
+ROOT = Path(os.environ.get("ROOT", Path(__file__).resolve().parents[2]))
+BASE_DIR = ROOT / "data/training"
 
 VARIANTS = {
     "group_a_farthest": BASE_DIR / "group_a" / "farthest_test",
@@ -116,7 +118,7 @@ def main():
               f"mean_acc={mean_acc*100:6.2f}% (+/-{std_acc*100:.2f}pp)  "
               f"weighted_acc={weighted_acc*100:6.2f}%  total_n={total_n}")
 
-    out_path = Path("/scratch/fpietrew/dna-assembler/results/baseline_results.json")
+    out_path = ROOT / "results/baseline_results.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(rows, f, indent=2)
