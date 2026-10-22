@@ -10,7 +10,12 @@
 #SBATCH --time=03:00:00
 
 set -euo pipefail
-source "$(dirname "${BASH_SOURCE[0]}")/../../config.sh"
+HPC_DIR="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+if [ ! -f "$HPC_DIR/config.sh" ]; then
+    echo "ERROR: $HPC_DIR/config.sh nie istnieje. Pod SLURM-em ten skrypt jest kopiowany do spool, wiec BASH_SOURCE nie wskazuje repo - uruchom 'sbatch' z katalogu experiments/hpc/ (zob. README.md)." >&2
+    exit 1
+fi
+source "$HPC_DIR/config.sh"
 
 WORKDIR="$ROOT/experiments/hpc/data/genomes_enterobacteriaceae"
 cd "$WORKDIR"

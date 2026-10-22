@@ -11,6 +11,21 @@ bez SLURM-a, rownolegle przez `xargs -P`. Wszystkie sciezki i parametry
 
 ### SLURM (HPC)
 
+**Wazne: kazdy `sbatch` trzeba wywolywac z katalogu `experiments/hpc/`**
+(np. `cd experiments/hpc && sbatch train_full_array.sh`), nie z innego
+miejsca i nie przez pelna sciezke z gdzie indziej. SLURM kopiuje skrypt do
+`/var/spool/slurmd/job<ID>/...` przed wykonaniem, wiec `BASH_SOURCE` wewnatrz
+skryptu wskazuje na ten katalog spool, nie na repo - kazdy `*_array.sh` i
+inny skrypt z `#SBATCH` ustala wiec swoj katalog jako
+`${SLURM_SUBMIT_DIR:-...}`, czyli katalog, z ktorego wywolano `sbatch`. Jesli
+submit nie bedzie z `experiments/hpc/`, skrypt zakonczy sie czytelnym
+"config.sh nie istnieje" zamiast cichym bledem (zobacz job 91700 -
+`smoke_test_train.sh` kiedys to zalamalo, zanim `SLURM_SUBMIT_DIR` tu bylo).
+`submit_all.sh` robi to poprawnie automatycznie (ma `cd "$HPC_DIR"` przed
+kazdym `sbatch`). `experiments/hpc/check_sbatch_paths.sh` jest statycznym
+testem, ktory wykrywa ten blad z powrotem, zanim trafi na klaster - uzyj go
+przed commitem kazdego nowego `*_array.sh`.
+
 `./submit_all.sh` wysyla caly lancuch przez `sbatch --dependency=afterok`:
 pobranie+Mash -> podzial (login node) -> build+generacja CSV -> trening ->
 ewaluacja zero-shot -> powtorzenia (3 seedy) -> solo baseline -> ewaluacja
