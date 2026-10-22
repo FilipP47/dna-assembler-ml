@@ -1,0 +1,14 @@
+data:
+  train_dir: data/training/ecoli_group_a/train
+  heldout_dir: data/training/ecoli_group_a/heldout
+
+training:
+  epochs: 50
+  batch_size: 64
+  lr: 1.0e-3
+  early_stop: 10
+  seed: 42
+  augment: true
+  val_split: 0.15
+  embed_dim: 64
+  hidden_dim: 64

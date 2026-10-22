@@ -77,6 +77,7 @@ def train_model(args) -> TrainingHistory:
         branch_len=args.branch_len,
         augment=args.augment,
         use_cov_feat=args.use_cov,
+        pair_seed=args.seed,
     )
     val_dataset = JunctionDataset(
         df=df_val,
@@ -84,6 +85,7 @@ def train_model(args) -> TrainingHistory:
         branch_len=args.branch_len,
         augment=False,
         use_cov_feat=args.use_cov,
+        pair_seed=args.seed,
     )
 
     train_loader = DataLoader(

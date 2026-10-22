@@ -7,7 +7,8 @@
 //!
 //! Output layout:
 //!   results/<genome>/   - assembly artefacts (contigs, optional reads)
-//!   data/training/      - training CSVs accumulated across genomes
+//!   data/training/      - training CSVs accumulated across genomes (default,
+//!                         overridable per run via --train-data-dir)
 
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
@@ -19,7 +20,8 @@ use dna_assembler::{
     SimpleAssembler, SimulatorConfig, TrainingDataConfig, TrainingDataGenerator,
 };
 
-/// Directory where training CSVs are always written, shared across all genomes.
+/// Default directory for training CSVs, shared across all genomes unless
+/// overridden with `--train-data-dir`.
 const TRAINING_DATA_DIR: &str = "data/training";
 
 /// Top-level CLI struct parsed by clap.
@@ -33,6 +35,23 @@ const TRAINING_DATA_DIR: &str = "data/training";
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+}
+
+/// Grouped, named arguments for `cmd_pipeline`.
+///
+/// `Commands::Pipeline` has two `PathBuf` fields (`results_dir`,
+/// `train_data_dir`) and three `bool` fields (`analyze`, `save_reads`,
+/// `gen_train_data`) - passing them as positional function arguments makes
+/// it easy to silently transpose two same-typed neighbours at the call site
+/// (compiles fine, wrong behavior at runtime). Building this struct with
+/// field-init shorthand instead makes such a transposition a compile error.
+struct PipelineArgs {
+    k: usize,
+    results_dir: PathBuf,
+    analyze: bool,
+    save_reads: bool,
+    gen_train_data: bool,
+    train_data_dir: PathBuf,
 }
 
 /// Shared simulation arguments reused by `simulate` and `pipeline`.
@@ -97,7 +116,7 @@ enum Commands {
         k: usize,
 
         /// Directory for assembly results (contigs.fasta, optional reads.fasta)
-        #[arg(short, long, default_value = "results")]
+        #[arg(long, default_value = "results")]
         results_dir: PathBuf,
 
         /// Enable junction analysis
@@ -111,6 +130,10 @@ enum Commands {
         /// Generate ML training data; CSV written to data/training/<genome>_training.csv
         #[arg(long)]
         gen_train_data: bool,
+
+        /// Directory for the generated training CSV (requires --gen-train-data)
+        #[arg(long, default_value = TRAINING_DATA_DIR, requires = "gen_train_data")]
+        train_data_dir: PathBuf,
     },
 }
 
@@ -143,7 +166,18 @@ fn main() -> Result<()> {
             analyze,
             save_reads,
             gen_train_data,
-        } => cmd_pipeline(sim, k, results_dir, analyze, save_reads, gen_train_data),
+            train_data_dir,
+        } => cmd_pipeline(
+            sim,
+            PipelineArgs {
+                k,
+                results_dir,
+                analyze,
+                save_reads,
+                gen_train_data,
+                train_data_dir,
+            },
+        ),
     }
 }
 
@@ -195,16 +229,19 @@ fn cmd_assemble(cfg: AssemblerConfig) -> Result<()> {
 /// Simulate reads from a reference genome, then assemble them in a single step.
 ///
 /// Assembly results go to `results_dir`.
-/// Training data (when `--gen-train-data`) always goes to `data/training/`,
-/// independent of `results_dir`, so CSVs accumulate across genome runs.
-fn cmd_pipeline(
-    sim: SimArgs,
-    k: usize,
-    results_dir: PathBuf,
-    analyze: bool,
-    save_reads: bool,
-    gen_train_data: bool,
-) -> Result<()> {
+/// Training data (when `--gen-train-data`) goes to `train_data_dir`
+/// (default `data/training/`), independent of `results_dir`, so CSVs
+/// accumulate across genome runs.
+fn cmd_pipeline(sim: SimArgs, args: PipelineArgs) -> Result<()> {
+    let PipelineArgs {
+        k,
+        results_dir,
+        analyze,
+        save_reads,
+        gen_train_data,
+        train_data_dir,
+    } = args;
+
     println!("=== STEP 1: Simulate ===");
     let ref_seq = load_reference(&sim.reference)?;
 
@@ -236,7 +273,7 @@ fn cmd_pipeline(
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("reference");
-        let csv_path = PathBuf::from(TRAINING_DATA_DIR).join(format!("{}_training.csv", ref_stem));
+        let csv_path = train_data_dir.join(format!("{}_training.csv", ref_stem));
         println!("Training data -> {}", csv_path.display());
         Some(Box::new(TrainingDataGenerator::new(
             TrainingDataConfig::default(),

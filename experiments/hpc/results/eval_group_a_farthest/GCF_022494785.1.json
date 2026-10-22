@@ -1,0 +1,13 @@
+{
+  "checkpoint": "../results/checkpoints/mv1_siamese_cnn_group_a_farthest_best.pt",
+  "eval_csv": "../data/training/group_a/farthest_test/GCF_022494785.1_training.csv",
+  "organism": "GCF_022494785.1",
+  "junction_accuracy": 0.733441,
+  "pair_accuracy": 0.744713,
+  "f1": 0.747384,
+  "precision": 0.74184,
+  "recall": 0.753012,
+  "loss": 0.475436,
+  "n_junctions": 619,
+  "n_pairs": 662
+}

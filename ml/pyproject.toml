@@ -1,0 +1,58 @@
+[project]
+name = "dna-assembler-ml"
+version = "0.1.0"
+description = "Python ML module for de Bruijn junction resolution"
+requires-python = ">=3.11"
+dependencies = [
+    "polars>=0.20",
+    "numpy>=1.24",
+    "scikit-learn>=1.3",
+    "matplotlib>=3.7",
+    "seaborn>=0.13",
+    "wandb>=0.17",
+    "pyyaml>=6.0",
+]
+
+# torch is not a plain dependency: which wheel to install depends on the
+# machine. Local CPU boxes sync the `cpu` group (default), GPU machines
+# sync `cu128` instead:
+#   uv sync                              # dev + cpu
+#   uv sync --no-group cpu --group cu128 # dev + CUDA 12.8
+# Both resolutions live in the one uv.lock.
+[dependency-groups]
+dev = [
+    "ruff>=0.16",
+    "pytest>=8.0",
+]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.24",
+]
+notebooks = [
+    "jupyter>=1.0",
+    "ipykernel>=6.0",
+]
+cpu = ["torch>=2.0"]
+cu128 = ["torch>=2.0"]
+
+[tool.uv]
+package = false
+default-groups = ["dev", "cpu"]
+conflicts = [[{ group = "cpu" }, { group = "cu128" }]]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", group = "cpu" },
+    { index = "pytorch-cu128", group = "cu128" },
+]
