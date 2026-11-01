@@ -10,8 +10,13 @@
 #SBATCH --time=01:00:00
 
 set -euo pipefail
-source "$HOME/.cargo/env"
-source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+HPC_DIR="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+if [ ! -f "$HPC_DIR/config.sh" ]; then
+    echo "ERROR: $HPC_DIR/config.sh nie istnieje. Pod SLURM-em ten skrypt jest kopiowany do spool, wiec BASH_SOURCE nie wskazuje repo - uruchom 'sbatch' z katalogu experiments/hpc/ (zob. README.md)." >&2
+    exit 1
+fi
+source "$HPC_DIR/config.sh"
 
 cd "$ROOT"
 PILOT_ACCESSIONS=$(head -n 3 experiments/hpc/data/genomes_ecoli/output/train_90_for_farthest_split.txt)

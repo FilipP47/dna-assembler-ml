@@ -17,7 +17,12 @@ module load uv/0.11.2
 module load cuda/12.9
 
 DEVICE=cuda
-source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+HPC_DIR="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+if [ ! -f "$HPC_DIR/config.sh" ]; then
+    echo "ERROR: $HPC_DIR/config.sh nie istnieje. Pod SLURM-em ten skrypt jest kopiowany do spool, wiec BASH_SOURCE nie wskazuje repo - uruchom 'sbatch' z katalogu experiments/hpc/ (zob. README.md)." >&2
+    exit 1
+fi
+source "$HPC_DIR/config.sh"
 
 export UV_PROJECT_ENVIRONMENT="$SLURM_SUBMIT_DIR/venv-evalrep-${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
 uv sync --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS

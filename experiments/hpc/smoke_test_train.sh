@@ -14,7 +14,12 @@ export PYTHONUNBUFFERED=1
 echo "[$(date +%T)] Start joba"
 module load uv/0.11.2
 
-source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+HPC_DIR="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+if [ ! -f "$HPC_DIR/config.sh" ]; then
+    echo "ERROR: $HPC_DIR/config.sh nie istnieje. Pod SLURM-em ten skrypt jest kopiowany do spool, wiec BASH_SOURCE nie wskazuje repo - uruchom 'sbatch' z katalogu experiments/hpc/ (zob. README.md)." >&2
+    exit 1
+fi
+source "$HPC_DIR/config.sh"
 
 export UV_PROJECT_ENVIRONMENT="$SLURM_SUBMIT_DIR/venv-smoke-$SLURM_JOB_ID"
 echo "[$(date +%T)] Synchronizuje zaleznosci (uv sync, moze potrwac kilka minut)..."

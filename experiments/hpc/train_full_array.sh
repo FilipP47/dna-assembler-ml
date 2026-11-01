@@ -17,7 +17,12 @@ module load uv/0.11.2
 module load cuda/12.9
 
 DEVICE=cuda
-source "$(dirname "${BASH_SOURCE[0]}")/config.sh"
+HPC_DIR="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+if [ ! -f "$HPC_DIR/config.sh" ]; then
+    echo "ERROR: $HPC_DIR/config.sh nie istnieje. Pod SLURM-em ten skrypt jest kopiowany do spool, wiec BASH_SOURCE nie wskazuje repo - uruchom 'sbatch' z katalogu experiments/hpc/ (zob. README.md)." >&2
+    exit 1
+fi
+source "$HPC_DIR/config.sh"
 
 # Per-task venv: array tasks run concurrently on a shared filesystem, so
 # each gets its own uv-managed environment instead of racing on one.
