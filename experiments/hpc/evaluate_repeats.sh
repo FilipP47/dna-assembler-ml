@@ -25,6 +25,6 @@ fi
 source "$HPC_DIR/config.sh"
 
 export UV_PROJECT_ENVIRONMENT="$SLURM_SUBMIT_DIR/venv-evalrep-${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
-uv sync --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS
+uv sync --frozen --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS
 
 bash "$HPC_DIR/tasks/eval_repeats.sh"

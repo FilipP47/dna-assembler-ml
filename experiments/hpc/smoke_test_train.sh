@@ -23,7 +23,7 @@ source "$HPC_DIR/config.sh"
 
 export UV_PROJECT_ENVIRONMENT="$SLURM_SUBMIT_DIR/venv-smoke-$SLURM_JOB_ID"
 echo "[$(date +%T)] Synchronizuje zaleznosci (uv sync, moze potrwac kilka minut)..."
-uv sync --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS
+uv sync --frozen --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS
 echo "[$(date +%T)] Zaleznosci zainstalowane."
 
 echo "[$(date +%T)] Import check..."

@@ -9,8 +9,9 @@
 #              image is required here)
 #
 # Pinned versions: Rust 1.91, Python 3.11.14 (must match ml/.python-version
-# exactly, or uv tries to download a managed interpreter at runtime), Mash
-# 2.3, PyTorch per ml/uv.lock (`uv sync --frozen` refuses to silently
+# exactly, or uv tries to download a managed interpreter at runtime), uv
+# 0.11.2 (same as `module load uv/0.11.2` on the HPC cluster), Mash 2.3,
+# PyTorch per ml/uv.lock (`uv sync --frozen` refuses to silently
 # re-resolve if the lock file and pyproject.toml drift apart). See
 # README.md for which exact wheel versions that resolves to for the
 # cpu/cu128 groups.
@@ -40,7 +41,7 @@ RUN wget -q "https://github.com/marbl/Mash/releases/download/v${MASH_VERSION}/ma
     && install -m 0755 "/tmp/mash-Linux64-v${MASH_VERSION}/mash" /usr/local/bin/mash \
     && rm -rf /tmp/mash*
 
-RUN pip install --no-cache-dir uv
+RUN pip install --no-cache-dir uv==0.11.2
 
 WORKDIR /app
 COPY --from=rust-builder /build/target/release/dna-assembler ./target/release/dna-assembler

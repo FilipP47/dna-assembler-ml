@@ -134,8 +134,12 @@ treningu; nie da sie ich odtworzyc.
 
 Commit `b3e2d48` (po grupie A/B) zmigrowal `ml/` na projekt `uv`
 (`pyproject.toml` + `uv.lock`), co od tej pory przypina dokladne wersje.
-Obraz Docker i wszystkie skrypty w tym katalogu uzywaja `uv sync --frozen`,
-co dla grup `cpu`/`cu128` daje m.in.:
+Kazde wywolanie `uv sync` w tym katalogu (`*_array.sh`, `evaluate_*.sh`,
+`smoke_test_train.sh`, `run_local.sh`) i w `Dockerfile` ma `--frozen`, wiec
+instaluje dokladnie to, co jest w `uv.lock`, zamiast po cichu go
+przeresolvowac. Sam `uv` tez jest przypiety do 0.11.2: na klastrze przez
+`module load uv/0.11.2`, w obrazie Docker przez `pip install uv==0.11.2`.
+Dla grup `cpu`/`cu128` daje to m.in.:
 
 | Pakiet | Wersja (cpu) | Wersja (cu128) |
 |---|---|---|
