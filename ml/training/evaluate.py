@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 from data.dataset import JunctionDataset, collate_junction_batch
 from data.loader import load_training_csv
 from models.mv1 import Mv1JunctionModel
+from training.device import resolve_device
 from training.metrics import MetricsTracker
 
 logger = logging.getLogger(__name__)
@@ -46,13 +47,7 @@ def evaluate_model(args) -> dict:
     model.load_state_dict(checkpoint["model_state"])
     use_cov = hparams.get("cov_feat_dim", 6) > 0
 
-    device_str = getattr(args, "device", None)
-    if device_str is None:
-        device_str = (
-            "cuda" if torch.cuda.is_available() else
-            "mps"  if torch.backends.mps.is_available() else "cpu"
-        )
-    device = torch.device(device_str)
+    device = resolve_device(getattr(args, "device", None))
     model.to(device)
     model.eval()
 

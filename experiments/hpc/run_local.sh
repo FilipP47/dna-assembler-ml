@@ -44,7 +44,7 @@ case "$TASK" in
     train_full|train_solo|train_repeat|eval_zero_shot|eval_repeats)
         export UV_PROJECT_ENVIRONMENT="$ROOT/ml/.venv"
         echo "[$(date +%T)] uv sync ($ROOT/ml, group matching DEVICE=$DEVICE)..."
-        uv sync --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS
+        uv sync --frozen --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS
         ;;
 esac
 

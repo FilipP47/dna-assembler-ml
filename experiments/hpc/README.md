@@ -26,6 +26,16 @@ kazdym `sbatch`). `experiments/hpc/check_sbatch_paths.sh` jest statycznym
 testem, ktory wykrywa ten blad z powrotem, zanim trafi na klaster - uzyj go
 przed commitem kazdego nowego `*_array.sh`.
 
+**Kazde `uv run` w tym katalogu ma `--no-sync`.** Srodowisko jest budowane
+raz przez `uv sync ... $UV_SYNC_EXTRA_ARGS` (grupa `cu128` dla
+`DEVICE=cuda`), a domyslny `uv run` przed startem synchronizuje je od nowa
+do grup domyslnych (`dev` + `cpu`) i podmienia torcha na wersje CPU (job
+94575: "Torch not compiled with CUDA enabled", w logu "Uninstalled 1
+package / Installed 1 package"). Nowe wywolania `uv run` w skryptach tez
+musza miec `--no-sync`. Obraz Docker ustawia to samo przez `UV_NO_SYNC=1`.
+Jesli mimo to `--device cuda` trafi na torch bez CUDA, `ml/main.py` konczy
+sie od razu bledem z podpowiedzia o grupie `cu128`.
+
 `./submit_all.sh` wysyla caly lancuch przez `sbatch --dependency=afterok`:
 pobranie+Mash -> podzial (login node) -> build+generacja CSV -> trening ->
 ewaluacja zero-shot -> powtorzenia (3 seedy) -> solo baseline -> ewaluacja
@@ -124,8 +134,12 @@ treningu; nie da sie ich odtworzyc.
 
 Commit `b3e2d48` (po grupie A/B) zmigrowal `ml/` na projekt `uv`
 (`pyproject.toml` + `uv.lock`), co od tej pory przypina dokladne wersje.
-Obraz Docker i wszystkie skrypty w tym katalogu uzywaja `uv sync --frozen`,
-co dla grup `cpu`/`cu128` daje m.in.:
+Kazde wywolanie `uv sync` w tym katalogu (`*_array.sh`, `evaluate_*.sh`,
+`smoke_test_train.sh`, `run_local.sh`) i w `Dockerfile` ma `--frozen`, wiec
+instaluje dokladnie to, co jest w `uv.lock`, zamiast po cichu go
+przeresolvowac. Sam `uv` tez jest przypiety do 0.11.2: na klastrze przez
+`module load uv/0.11.2`, w obrazie Docker przez `pip install uv==0.11.2`.
+Dla grup `cpu`/`cu128` daje to m.in.:
 
 | Pakiet | Wersja (cpu) | Wersja (cu128) |
 |---|---|---|

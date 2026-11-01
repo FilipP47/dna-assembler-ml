@@ -20,7 +20,7 @@ RUN_NAME="${VARIANT}_seed${SEED}"
 
 echo "[$(date +%T)] ${RUN_NAME} (data=${DATA_PATH}, seed=${SEED})"
 
-uv run --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
+uv run --no-sync --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
     --data_path "$ROOT/$DATA_PATH" \
     --ckpt_dir "$ROOT/results/checkpoints_repeats" \
     --context_len 150 \
