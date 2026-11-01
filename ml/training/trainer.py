@@ -23,6 +23,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
+from training.device import resolve_device
 from training.metrics import EpochMetrics, MetricsTracker, TrainingHistory
 from models.base import BaseJunctionModel
 
@@ -81,10 +82,7 @@ class Trainer:
         self.use_wandb = use_wandb
         self.run_name  = run_name
 
-        if device is None:
-            device = "cuda" if torch.cuda.is_available() else \
-                     "mps"  if torch.backends.mps.is_available() else "cpu"
-        self.device = torch.device(device)
+        self.device = resolve_device(device)
         self.model.to(self.device)
         logger.info(f"Training on device: {self.device}")
         logger.info(f"Model: {model.model_name()} "

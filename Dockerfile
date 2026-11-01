@@ -62,6 +62,10 @@ ENV PYTHONUNBUFFERED=1
 # one the .venv above was already built with, and re-downloads + rebuilds
 # the venv on first run inside the container (needs network, ~30s wasted).
 ENV UV_PYTHON_PREFERENCE=only-system
+# `uv run` otherwise re-syncs the venv to the default groups (dev + cpu)
+# first, which in the cuda image swaps the cu128 torch for the CPU wheel.
+# The venv is final after the `uv sync` above; never let `uv run` touch it.
+ENV UV_NO_SYNC=1
 
 VOLUME ["/work"]
 ENTRYPOINT ["/bin/bash"]

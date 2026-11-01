@@ -32,7 +32,7 @@ for g in "${GENOMES[@]}"; do
 done
 
 echo "[2/3] Training (2 epochs, device=$DEVICE)"
-uv run --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
+uv run --no-sync --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
     --data_path "$TRAIN_DATA_DIR" \
     --ckpt_dir "$RESULTS_DIR/checkpoints" \
     --context_len 150 \
@@ -43,7 +43,7 @@ uv run --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
     --run_name smoke_test
 
 echo "[3/3] Evaluating on ${GENOMES[0]}_training.csv"
-uv run --project "$ROOT/ml" python3 "$ROOT/ml/main.py" evaluate \
+uv run --no-sync --project "$ROOT/ml" python3 "$ROOT/ml/main.py" evaluate \
     --model_path "$RESULTS_DIR/checkpoints/mv1_siamese_cnn_smoke_test_best.pt" \
     --test_csv "$TRAIN_DATA_DIR/${GENOMES[0]}_training.csv" \
     --context_len 150 \

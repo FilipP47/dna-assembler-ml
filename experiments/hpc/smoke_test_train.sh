@@ -27,10 +27,10 @@ uv sync --project "$ROOT/ml" $UV_SYNC_EXTRA_ARGS
 echo "[$(date +%T)] Zaleznosci zainstalowane."
 
 echo "[$(date +%T)] Import check..."
-(cd "$ROOT/ml" && uv run python3 -c "from training.train import train_model; print('OK: importy dzialaja')")
+(cd "$ROOT/ml" && uv run --no-sync python3 -c "from training.train import train_model; print('OK: importy dzialaja')")
 
 echo "[$(date +%T)] Start 1-epokowego treningu (device=cpu)..."
-uv run --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
+uv run --no-sync --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
     --data_path "$ROOT/data/training/group_a/farthest_train" \
     --ckpt_dir "$ROOT/results/checkpoints_smoke" \
     --context_len 150 \

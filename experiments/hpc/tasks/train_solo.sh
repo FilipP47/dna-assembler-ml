@@ -21,7 +21,7 @@ RUN_NAME="solo_${GRP}_${ACC}_seed${SEED}"
 
 echo "[$(date +%T)] ${RUN_NAME} (csv=${CSV})"
 
-uv run --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
+uv run --no-sync --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
     --data_path "$ROOT/$CSV" \
     --ckpt_dir "$ROOT/results/checkpoints_solo" \
     --context_len 150 \

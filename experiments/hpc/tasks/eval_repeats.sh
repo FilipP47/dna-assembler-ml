@@ -25,7 +25,7 @@ mkdir -p "$RESULTS_DIR"
 
 for csv_file in "$TEST_DIR"/*.csv; do
     acc=$(basename "$csv_file" _training.csv)
-    uv run --project "$ROOT/ml" python3 "$ROOT/ml/main.py" evaluate \
+    uv run --no-sync --project "$ROOT/ml" python3 "$ROOT/ml/main.py" evaluate \
         --model_path "$CKPT" \
         --test_csv "$csv_file" \
         --context_len 150 \

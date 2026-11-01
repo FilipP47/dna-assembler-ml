@@ -17,7 +17,7 @@ esac
 
 echo "[$(date +%T)] Task ${SLURM_ARRAY_TASK_ID}: ${RUN_NAME} (${DATA_PATH})"
 
-uv run --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
+uv run --no-sync --project "$ROOT/ml" python3 "$ROOT/ml/main.py" train \
     --data_path "$DATA_PATH" \
     --ckpt_dir "$ROOT/results/checkpoints" \
     --context_len 150 \
