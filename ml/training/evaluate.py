@@ -103,6 +103,8 @@ def evaluate_model(args) -> dict:
     n_junctions = df["junction_id"].n_unique()
     result = {
         "checkpoint": str(ckpt_path),
+        # Absent in checkpoints saved before REQ031; null then.
+        "git_commit": checkpoint.get("git_commit"),
         "eval_csv":   str(csv_path),
         "organism":   organism,
         "junction_accuracy": round(metrics.junction_accuracy, 6),

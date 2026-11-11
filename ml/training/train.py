@@ -19,6 +19,7 @@ from data.loader import load_training_csv, split_dataset
 from models.mv1 import Mv1JunctionModel
 from training.trainer import Trainer
 from training.metrics import TrainingHistory
+from training.provenance import collect_provenance
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,14 @@ def train_model(args) -> TrainingHistory:
         :class:`~training.metrics.TrainingHistory` with per-epoch metrics.
     """
     _set_seed(args.seed)
+
+    provenance = collect_provenance(args)
+    logger.info(
+        "Run provenance: git_commit=%s git_dirty=%s",
+        provenance["git_commit"],
+        provenance["git_dirty"],
+    )
+    logger.info("Run config: %s", provenance["config"])
 
     csv_path = Path(args.data_path)
 
@@ -138,6 +147,9 @@ def train_model(args) -> TrainingHistory:
         "seed":        args.seed,
         "train_samples": len(train_dataset),
         "val_samples":   len(val_dataset),
+        "git_commit":    provenance["git_commit"],
+        "git_dirty":     provenance["git_dirty"],
+        "run_config":    provenance["config"],
     }
 
     trainer = Trainer(
@@ -152,6 +164,7 @@ def train_model(args) -> TrainingHistory:
         wandb_project=getattr(args, "wandb_project", "dna-assembler-ml"),
         wandb_config=wandb_config,
         run_name=getattr(args, "run_name", None),
+        provenance=provenance,
     )
 
     history = trainer.fit(train_loader, val_loader)

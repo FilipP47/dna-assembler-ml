@@ -13,10 +13,12 @@ Training strategy:
 
 from __future__ import annotations
 
+import dataclasses
+import json
 import logging
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import torch
 import torch.nn as nn
@@ -55,6 +57,7 @@ class Trainer:
         wandb_project:  str   = "dna-assembler-ml",
         wandb_config:   Optional[dict] = None,
         run_name:       Optional[str] = None,
+        provenance:     dict[str, Any] | None = None,
     ):
         """Initialise the trainer, optimiser, scheduler, and optional W&B run.
 
@@ -73,6 +76,10 @@ class Trainer:
             use_wandb: Enable Weights & Biases logging.
             wandb_project: W&B project name.
             wandb_config: Extra key-value pairs logged to the W&B run config.
+            run_name: Optional suffix for the checkpoint and metrics file names.
+            provenance: Optional dict with ``git_commit``, ``git_dirty`` and
+                ``config`` (see :mod:`training.provenance`), stored in every
+                checkpoint and in the final metrics JSON.
         """
         self.model     = model
         self.ckpt_dir  = Path(checkpoint_dir)
@@ -81,6 +88,7 @@ class Trainer:
         self.early_stop_patience = early_stop
         self.use_wandb = use_wandb
         self.run_name  = run_name
+        self.provenance = provenance or {}
 
         self.device = resolve_device(device)
         self.model.to(self.device)
@@ -247,6 +255,7 @@ class Trainer:
         history.print_summary()
         self.ckpt_dir.mkdir(parents=True, exist_ok=True)
         history.to_csv(self.ckpt_dir / "training_history.csv")
+        self._save_final_metrics(history)
 
         if self.use_wandb:
             try:
@@ -314,5 +323,33 @@ class Trainer:
             "val_junction_accuracy": metrics.junction_accuracy,
             "val_f1": metrics.f1,
             "model_hparams": self.model.hparams() if hasattr(self.model, "hparams") else {},
+            **self.provenance,
         })
+        return path
+
+    def _save_final_metrics(self, history: TrainingHistory) -> Path:
+        """Write the final metrics and run provenance to ``<run_name>_metrics.json``.
+
+        The file name uses the model name when no ``run_name`` was given.
+        ``training_history.csv`` is left unchanged.
+
+        Args:
+            history: Per-epoch metrics of the finished run.
+
+        Returns:
+            Path to the written JSON file.
+        """
+        best_idx = history.best_val_epoch("junction_accuracy")
+        result = {
+            "run_name":    self.run_name,
+            "epochs_run":  len(history.val),
+            "best_epoch":  best_idx + 1,
+            "best_val":    dataclasses.asdict(history.val[best_idx]),
+            "final_train": dataclasses.asdict(history.train[-1]),
+            "final_val":   dataclasses.asdict(history.val[-1]),
+            **self.provenance,
+        }
+        path = self.ckpt_dir / f"{self.run_name or self.model.model_name()}_metrics.json"
+        path.write_text(json.dumps(result, indent=2))
+        logger.info("Final metrics saved to %s", path)
         return path

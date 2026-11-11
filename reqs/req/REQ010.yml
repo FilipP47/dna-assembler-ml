@@ -12,6 +12,6 @@ references:
   type: file
 - path: experiments/hpc/tasks/eval_zero_shot.sh
   type: file
-reviewed: vCVCM7Nq2t8J12FeDjvTvVlGLzeccd84JDt3s2Q94lk=
+reviewed: V1fP8S-u7gWgAIu8K6QcOlpkmfRpLxP4Kw41OpSETls=
 text: |
-  `main.py evaluate --output_json <plik>` zapisuje JSON z kluczami checkpoint, eval_csv, organism, junction_accuracy, pair_accuracy, f1, precision, recall, loss, n_junctions, n_pairs. Plik na organizm powstaje dlatego, ze tasks/eval_zero_shot.sh wywoluje evaluate osobno dla kazdego CSV z katalogu testowego.
+  `main.py evaluate --output_json <plik>` zapisuje JSON z kluczami checkpoint, git_commit (z checkpointu, null dla checkpointow sprzed REQ031), eval_csv, organism, junction_accuracy, pair_accuracy, f1, precision, recall, loss, n_junctions, n_pairs. Plik na organizm powstaje dlatego, ze tasks/eval_zero_shot.sh wywoluje evaluate osobno dla kazdego CSV z katalogu testowego.

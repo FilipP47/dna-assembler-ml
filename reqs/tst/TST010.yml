@@ -4,10 +4,12 @@ header: |
   Klucze JSON ewaluacji
 level: 3.1
 links:
-- REQ010: mm_QYncyANSgHwtMKQXYFFrOUpSShRRopdt4XrYVyoI=
+- REQ010: z6nvBzeGGiRIpddH_pB6w9Tb6MkhKhe8sWDs1mp2Wus=
 normative: true
 ref: ''
-references: []
-reviewed: uSY853sb09mwAZcx-QXXGLiwEy2WagkEdOK-eyX6jB4=
+references:
+- path: ml/tests/training/test_evaluate.py
+  type: file
+reviewed: b9zhvVCM0gBaaKcycQlo8JSyfydO17HpdItlImSP3WM=
 text: |
-  TODO
+  ml/tests/training/test_evaluate.py::test_output_json_keys_with_new_checkpoint, ::test_old_checkpoint_without_provenance_still_loads (dokladny zestaw kluczy JSON).

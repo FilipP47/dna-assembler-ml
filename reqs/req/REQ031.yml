@@ -8,9 +8,11 @@ links:
 normative: true
 ref: ''
 references:
+- path: ml/training/provenance.py
+  type: file
 - path: ml/training/trainer.py
   type: file
-reviewed: 2lxZBzHAs8fXRH4F8Xr3hdz0NoAN3DAdKCLjT-94AiM=
-status: todo
+reviewed: z8miQt1UfTVfh5MhgZh8SSGf2c7HtquSvhXrq-UgRXo=
+status: active
 text: |
-  Kazdy trening zapisuje uzyty config, hash commitu git i metryki koncowe (wymaganie z CLAUDE.md projektu). Status: TODO, niespelnione. trainer.py nie zapisuje hasha commitu.
+  Kazdy trening zapisuje git_commit (git rev-parse HEAD), git_dirty (git diff --quiet HEAD, bez plikow niesledzonych) i pelny config (wszystkie argumenty CLI plus no_cov). Bez gita commit pochodzi ze zmiennej GIT_COMMIT (ARG/ENV w Dockerfile), a gdy jej nie ma, to "unknown", z git_dirty = null; trening nie konczy sie bledem. Commit, dirty i config trafiaja do logu na starcie treningu, do configu W&B (gdy wlaczone) i do kazdego checkpointu. Koncowe metryki sa zapisywane do <ckpt_dir>/<run_name>_metrics.json, obok niezmienionego training_history.csv. Nowe klucze sa opcjonalne przy odczycie: checkpointy bez nich nadal sie wczytuja w evaluate.py (wymaganie z CLAUDE.md projektu).
