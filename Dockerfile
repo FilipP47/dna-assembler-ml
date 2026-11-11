@@ -24,9 +24,9 @@
 
 FROM rust:1.91-slim-bookworm AS rust-builder
 WORKDIR /build
-COPY Cargo.toml ./
+COPY Cargo.toml Cargo.lock ./
 COPY src ./src
-RUN cargo build --release
+RUN cargo build --release --locked
 
 FROM python:3.11.14-slim-bookworm AS runtime
 ARG DEVICE=cpu

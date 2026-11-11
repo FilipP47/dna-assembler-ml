@@ -156,9 +156,11 @@ pakietow; treningi grupy A/B nie sa, i to jest ograniczenie tamtego
 raportu, nie tylko formalnosc - torch miedzy wersjami czasem zmienia
 domyslne zachowanie niektorych operacji.
 
-(Analogiczna, mniejsza nieprzypiecie: `Cargo.lock` jest w `.gitignore`, wiec
-wersje crate'ow Rusta (`clap`, `rand`, `serde`, ...) takze plywaja miedzy
-`cargo build` w roznym czasie; `Cargo.toml` ma tylko dolne ograniczenia.)
+Po stronie Rusta `Cargo.lock` jest w repo, a `Dockerfile` kopiuje go i buduje
+z `cargo build --release --locked`, wiec wersje crate'ow (`clap`, `rand`,
+`serde`, ...) sa przypiete. Wczesniej `Dockerfile` kopiowal tylko `Cargo.toml`,
+wiec obraz resolvowal crate'y od nowa przy kazdym buildzie (`Cargo.toml` ma
+tylko dolne ograniczenia), mimo ze `Cargo.lock` byl w repo.
 
 ## Test dymny
 
