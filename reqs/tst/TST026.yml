@@ -7,7 +7,9 @@ links:
 - REQ026: I0vKLAR-PQf93YI5_y5TLxLpHJxnfMePPs19e1Zvtsw=
 normative: true
 ref: ''
-references: []
-reviewed: h0zM9tkbcmlzWOnQ6nVKwgq3Jl5XshPFa-0nNIajE98=
+references:
+- path: ml/tests/data/test_loader.py
+  type: file
+reviewed: ROtmNyIx676GjyeiQqKT1laIdUFA6YWOFCeBlchqaOA=
 text: |
-  TODO
+  ml/tests/data/test_loader.py::test_required_cols_are_the_19_rust_columns, ::test_missing_required_column_raises (kazda z 19 kolumn), ::test_k_and_repeat_len_are_optional, ::test_null_markers_become_null (NA, na, NaN, nan, puste), ::test_bad_numbers_are_coerced_without_error.
