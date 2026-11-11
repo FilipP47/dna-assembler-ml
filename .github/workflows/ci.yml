@@ -11,7 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust 1.91 (same as Dockerfile)
-        run: rustup toolchain install 1.91 --profile minimal && rustup default 1.91
+        run: |
+          rustup toolchain install 1.91 --profile minimal --component rustfmt,clippy
+          rustup default 1.91
+      - name: cargo fmt --check
+        run: cargo fmt --check
+      - name: cargo clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
       - name: cargo test
         run: cargo test --locked
 
@@ -27,6 +33,11 @@ jobs:
           version: "0.11.2"
       - name: uv sync (dev + cpu, from uv.lock)
         run: uv sync --frozen
+      # Legacy files are listed in [tool.ruff.lint/format] exclude in ml/pyproject.toml.
+      - name: ruff format --check
+        run: uv run --no-sync ruff format --check .
+      - name: ruff check
+        run: uv run --no-sync ruff check .
       - name: pytest
         run: uv run --no-sync pytest
       # Runs once reqs/ exists (added together with the doorstop dev dependency).

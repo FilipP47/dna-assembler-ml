@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.utils.data import DataLoader
 
 from data.dataset import JunctionDataset, collate_junction_batch
