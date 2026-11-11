@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Odtworzenie A farthest (reczny)
+level: 4.6
+links:
+- REQ018: 8pil1toppUq-U46BHC0dUZwmArW2E4DURZJNTN-NspY=
+normative: true
+ref: ''
+references:
+- path: experiments/hpc/compare_reproduction.py
+  type: file
+reviewed: LvGraa5uO2irFMVmFL-Pvgu9Q2NmySNM0xN2GNupj7U=
+text: |
+  Test reczny na klastrze wedlug experiments/hpc/README.md; wynik ocenia experiments/hpc/compare_reproduction.py --variant group_a_farthest (kod wyjscia 0 w granicach +/- 1 pp sredniej wazonej).

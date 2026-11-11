@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Okna kontekstu i galezi
+level: 1.8
+links:
+- CAT001: qtObB17RKohbi2rkociZso-Cj7X5rjuo1e8VR6TBNwk=
+normative: true
+ref: ''
+references:
+- path: src/pipeline/training_data/generator.rs
+  type: file
+reviewed: dfL3G16glF73sXU_rkiF0Zx4HZz40wQu-9fqi4PsEz8=
+text: |
+  context_seq to ostatnie do 100 nt sekwencji contigu zbudowanej do junctionu, wlacznie z wezlem junctionu. Sekwencja galezi ma do 100 nt: generator idzie wzdluz galezi i konczy wczesniej na martwym koncu albo na wezle z out_degree != 1. Obie dlugosci pochodza z TrainingDataConfig::default().

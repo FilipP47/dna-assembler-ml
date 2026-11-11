@@ -1,0 +1,12 @@
+active: true
+derived: false
+header: |
+  Generowanie danych (Rust)
+level: 1
+links: []
+normative: true
+ref: ''
+references: []
+reviewed: qtObB17RKohbi2rkociZso-Cj7X5rjuo1e8VR6TBNwk=
+text: |
+  Symulacja odczytow, budowa grafu de Bruijna, przejscie grafu i zapis wiersza treningowego dla kazdego junctionu (src/).

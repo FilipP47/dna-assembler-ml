@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Deterministyczna pozycja poprawnej galezi
+level: 2.3
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/data/dataset.py
+  type: file
+reviewed: g1duq5dnAFryLKQRUXTtdO3Rcje3tpptSVUfrPCMuHo=
+text: |
+  Dla kazdej pary (poprawna, bledna galaz) to, czy poprawna galaz trafia na branch_a czy branch_b, jest funkcja sha256(pair_seed, junction_id, indeks_blednej_galezi). Nie zalezy od kolejnosci wierszy, liczby workerow DataLoadera ani od flagi augment. Trening uzywa pair_seed = --seed (domyslnie 42), evaluate uzywa pair_seed = 0.

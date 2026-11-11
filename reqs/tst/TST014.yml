@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Lint sciezek SLURM
+level: 4.2
+links:
+- REQ014: cfkXDyVn3INLtjnGeD2-Ra_OwbU9rHrACVCK7vaO60w=
+normative: true
+ref: ''
+references:
+- path: experiments/hpc/check_sbatch_paths.sh
+  type: file
+reviewed: hgKmghKTQfiFx9i_GmyOrlxqX8_ubTbn_qTKxO4rH0g=
+text: |
+  experiments/hpc/check_sbatch_paths.sh (kod wyjscia 1 przy niechronionym BASH_SOURCE w skrypcie z #SBATCH).

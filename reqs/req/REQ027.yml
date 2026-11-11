@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Blad przy braku junctionow
+level: 1.9
+links:
+- CAT001: qtObB17RKohbi2rkociZso-Cj7X5rjuo1e8VR6TBNwk=
+normative: true
+ref: ''
+references:
+- path: src/main.rs
+  type: file
+reviewed: US_joIBEqIqN8YmRrhixmLPu3K8gLncjzV7ADZq43YA=
+text: |
+  `pipeline --gen-train-data` konczy sie bledem, gdy graf nie ma zadnego junctionu, z podpowiedzia, zeby obnizyc k albo zwiekszyc pokrycie.

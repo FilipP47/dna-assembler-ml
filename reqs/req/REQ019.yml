@@ -1,0 +1,14 @@
+active: true
+derived: false
+header: |
+  Znane ograniczenie: niedeterministyczne przejscie grafu
+level: 1.5
+links: []
+normative: false
+ref: ''
+references:
+- path: src/core/graph/debruijn.rs
+  type: file
+reviewed: CovApRlgJndKPbVAZoDEHeYyWOPmz0guDZ_UMjK2k7k=
+text: |
+  Graf przechowuje wezly i krawedzie w std HashMap z losowym RandomState, wiec kolejnosc przejscia grafu zmienia sie miedzy uruchomieniami. Przy tych samych odczytach zmienia sie kolejnosc wierszy CSV, contig_id i to, ktore junctiony zostana zapisane. Liczba oznaczonych junctionow waha sie o ok. 1%.

@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  JSON wyniku ewaluacji
+level: 3.1
+links:
+- CAT003: mepXMUSbCSB4apIBByjRIxridj2JMJQ8CcA3IDn0Y4w=
+normative: true
+ref: ''
+references:
+- path: ml/training/evaluate.py
+  type: file
+- path: experiments/hpc/tasks/eval_zero_shot.sh
+  type: file
+reviewed: vCVCM7Nq2t8J12FeDjvTvVlGLzeccd84JDt3s2Q94lk=
+text: |
+  `main.py evaluate --output_json <plik>` zapisuje JSON z kluczami checkpoint, eval_csv, organism, junction_accuracy, pair_accuracy, f1, precision, recall, loss, n_junctions, n_pairs. Plik na organizm powstaje dlatego, ze tasks/eval_zero_shot.sh wywoluje evaluate osobno dla kazdego CSV z katalogu testowego.

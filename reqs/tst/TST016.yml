@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Smoke test Docker (reczny)
+level: 4.4
+links:
+- REQ016: IJl_TpcAucHhxCUgy8_D6GdXLkDk9inQcDoX5qrr4-w=
+normative: true
+ref: ''
+references:
+- path: experiments/hpc/smoke_test_docker.sh
+  type: file
+reviewed: aLgfSz4bmGo9MAjnJP1Jy_cZ85YIIVYNcI6wJhVtiLI=
+text: |
+  Test reczny: docker build -t dna-assembler-ml . oraz docker run --rm --network none -v "$PWD/work:/work" dna-assembler-ml experiments/hpc/smoke_test_docker.sh; oczekiwane "SMOKE TEST OK" na koncu.

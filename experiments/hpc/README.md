@@ -162,6 +162,43 @@ z `cargo build --release --locked`, wiec wersje crate'ow (`clap`, `rand`,
 wiec obraz resolvowal crate'y od nowa przy kazdym buildzie (`Cargo.toml` ma
 tylko dolne ograniczenia), mimo ze `Cargo.lock` byl w repo.
 
+## Odtworzenie wyniku A farthest (seed 42)
+
+Wynik referencyjny to commitowane JSON-y w `results/eval_group_a_farthest/`
+(10 organizmow testowych). Liczba podawana w raporcie, 71,98%, to srednia
+`junction_accuracy` wazona `n_junctions` (suma poprawnie rozwiazanych
+junctionow przez sume junctionow). Zwykla srednia po organizmach dla tych
+samych plikow to 72,59%. Wymaganie o odtwarzalnosci i ponizsze porownanie
+dotycza sredniej wazonej.
+
+Procedura (na klastrze, z katalogu `experiments/hpc/`, z gotowymi
+`data/training/group_a/farthest_{train,test}/` po `organize_splits.sh`):
+
+```bash
+cd experiments/hpc
+sbatch --array=1 train_full_array.sh        # tylko zadanie 1 = group_a_farthest
+sbatch --array=1 --dependency=afterok:<JOB_ID_TRENINGU> evaluate_zero_shot.sh
+cd ../..
+python3 experiments/hpc/compare_reproduction.py --variant group_a_farthest
+```
+
+`tasks/train_full.sh` nie podaje `--seed`, wiec trening idzie z domyslnym
+seedem 42 z `ml/main.py`. Trening nadpisuje
+`results/checkpoints/mv1_siamese_cnn_group_a_farthest_best.pt`, a ewaluacja
+zapisuje `results/eval_group_a_farthest/`. Oba katalogi sa poza gitem, wiec
+referencja w `experiments/hpc/results/` zostaje nietknieta.
+`compare_reproduction.py` wypisuje obie srednie i roznice per organizm, a
+konczy sie kodem 1, gdy srednia wazona odbiega od referencji o wiecej niz
+1 pp (`--tolerance_pp`).
+
+Ostatnie odtworzenie (trening: job 94577, ewaluacja: job 94594, torch
+2.11.0+cu128 z `uv.lock`) dalo srednia wazona 71,57% (-0,41 pp wzgledem
+71,98%) i zwykla srednia 72,24% (-0,36 pp wzgledem 72,59%), obie w granicach
++/- 1 pp. Referencja byla
+liczona przed migracja na `uv` (patrz sekcja wyzej), wiec roznica obejmuje
+tez inne wersje pakietow i sprzet. Dla porownania, powtorzenia z seedami
+123 i 7 (`results/eval_repeats/`) daja 71,16% i 71,99%.
+
 ## Test dymny
 
 `smoke_test_docker.sh` generuje CSV dla 3 malych lokalnych genomow

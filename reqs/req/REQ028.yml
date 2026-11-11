@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Seedy treningu
+level: 2.9
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/training/train.py
+  type: file
+reviewed: h5Hr97-Ywnn5bsGQpL8nrcyqAeQ6RpcBT8zcJabnS9g=
+text: |
+  train_model przed wczytaniem danych ustawia --seed (domyslnie 42) dla random, numpy, torch i torch.cuda, wlacza cudnn.deterministic i wylacza cudnn.benchmark.

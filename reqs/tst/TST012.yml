@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Rozlacznosc list podzialow
+level: 3.3
+links:
+- REQ012: YzdTNORwQf-SzLcvdXtdb42AxLtC8yZqoTa04iV7YPY=
+normative: true
+ref: ''
+references:
+- path: ml/tests/hpc/test_split_lists.py
+  type: file
+reviewed: cNTo-FP3NbY2ueJ6nQhxMjMI2HG0BkXGmV15A3h1ZJw=
+text: |
+  ml/tests/hpc/test_split_lists.py::test_test_and_train_are_disjoint_and_cover_pool, ::test_dropped_near_duplicates_not_in_pool.

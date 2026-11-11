@@ -1,0 +1,19 @@
+active: true
+derived: false
+header: |
+  Tryb tylko sekwencyjny (--no_cov)
+level: 2.6
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/main.py
+  type: file
+- path: ml/data/dataset.py
+  type: file
+- path: ml/training/evaluate.py
+  type: file
+reviewed: JF8m40c2IfyAgGoDybPvmhzaaHBIpIMw5wgPAr_RILY=
+text: |
+  Przy `main.py train --no_cov` wektor cech pokrycia jest pusty (cov_feat_dim = 0), wiec model widzi tylko one-hot kontekstu i galezi, a cov_ratio_max i pokrycia nie sa wejsciem. repeat_len nie jest wejsciem modelu w zadnym trybie. `evaluate` nie ma tej flagi: odczytuje cov_feat_dim z model_hparams w checkpoincie.

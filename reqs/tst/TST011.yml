@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Progi i remisy baseline
+level: 3.2
+links:
+- REQ011: 1u9cYTGVx7Y0tmROwL2hTTpMa7579cFrsjyg4DdY64w=
+normative: true
+ref: ''
+references:
+- path: ml/tests/hpc/test_baseline_thresholds.py
+  type: file
+reviewed: 9QBapCi35iHZyLxyMZtZJkyxaA_ZNnw5a2XDBGsGCw0=
+text: |
+  ml/tests/hpc/test_baseline_thresholds.py::test_thresholds_match_loader_and_evaluate_defaults, ::test_coverage_tie_is_broken_alphabetically.

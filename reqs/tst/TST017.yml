@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Obecnosc i spojnosc list
+level: 4.5
+links:
+- REQ017: YlYdef39uBSdU1l-Cl0iGzbaMqCFLhmd6MavNlwr6uI=
+normative: true
+ref: ''
+references:
+- path: ml/tests/hpc/test_split_lists.py
+  type: file
+reviewed: QClqh6Btm4fmivDQPxKqpokp5f_19g8AY00bZHR8OSo=
+text: |
+  ml/tests/hpc/test_split_lists.py: listy istnieja w experiments/hpc/data/genomes_*/output/ i sa spojne z full_pool_100.txt.

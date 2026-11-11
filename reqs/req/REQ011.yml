@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Baseline na tej samej populacji co model
+level: 3.2
+links:
+- CAT003: mepXMUSbCSB4apIBByjRIxridj2JMJQ8CcA3IDn0Y4w=
+normative: true
+ref: ''
+references:
+- path: experiments/hpc/baseline_max_coverage.py
+  type: file
+reviewed: NtMYGig4mBwnRAjuHoxhNT90qOIcEbquorRajUNkqQY=
+text: |
+  baseline_max_coverage.py liczy trafnosc heurystyki max-coverage na tej samej populacji junctionow co evaluate, pod warunkiem tych samych progow dlugosci: MIN_CONTEXT_LEN i MIN_BRANCH_LEN w skrypcie sa rowne domyslnym min_context_len i min_branch_len loadera i `main.py evaluate` (10 i 5). Remis pokrycia jest rozstrzygany na rzecz pierwszej zasady w kolejnosci A, C, G, T. Dla 40 commitowanych wynikow A/B n_junctions modelu jest rowne usable baseline.

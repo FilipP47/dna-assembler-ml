@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Zalozenia symulatora
+level: 1.6
+links:
+- REQ023: xmDWwUsQg0me6vivk-HQeFjxOn4dF84C57MkO9cr1GA=
+normative: true
+ref: ''
+references:
+- path: src/pipeline/simulator/random.rs
+  type: file
+reviewed: wJWKVS7RbCoUdw1PlEcBx8u6o4tGWAkM28jiUdhrzQk=
+text: |
+  random.rs::tests: correct_read_length, approximate_coverage, reads_are_substrings_of_reference, genome_shorter_than_read_errors. Tylko nic prosta nie jest osobno testowana. Uruchomienie: cargo test.

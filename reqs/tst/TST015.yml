@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Lint flag uv
+level: 4.3
+links:
+- REQ015: tz5mSfqgELPDrsgH13kIR2SIlBs3GBK7GzLpDWKKJQk=
+normative: true
+ref: ''
+references:
+- path: experiments/hpc/check_uv_flags.sh
+  type: file
+reviewed: tylc_KFIVVBzOZpsir5hNyDX-MmQr1-PRoNg4INcH9c=
+text: |
+  experiments/hpc/check_uv_flags.sh (kod wyjscia 1 przy uv run bez --no-sync, uv sync bez --frozen albo braku UV_NO_SYNC=1 w Dockerfile).

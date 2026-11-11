@@ -39,3 +39,24 @@ Srodowisko Pythona (`ml/`): `cd ml && uv sync`. Na maszynie z GPU:
 
 Uruchomienie skryptu Pythona: `cd ml && uv run python3 <sciezka>`.
 Testy: `cd ml && uv run pytest`.
+
+## Wymagania i sledzenie
+
+Wymagania sa w Doorstopie, w trzech dokumentach w `reqs/`: `CAT` (kategorie),
+`REQ` (wymagania, kazde podlinkowane do kategorii) i `TST` (testy, kazdy
+podlinkowany do wymagania, z `references` do pliku testu). Test, ktorego
+jeszcze nie ma, ma tekst `TODO` i nie ma referencji. Wpisy nienormatywne
+(`normative: false`) to znane ograniczenia i zalozenia; nie maja linkow, bo
+Doorstop na to nie pozwala.
+
+Doorstop jest zaleznoscia dev w `ml/`, wiec komendy uruchamia sie przez `uv` z
+katalogu glownego repo:
+
+```
+uv run --project ml doorstop --error-all          # walidacja, ostrzezenia lamia wynik
+uv run --project ml doorstop review all           # po zatwierdzeniu zmienionej tresci
+uv run --project ml doorstop clear all            # po zatwierdzeniu zmienionych linkow
+uv run --project ml doorstop publish all ./public # HTML i traceability.csv
+```
+
+`public/` jest w `.gitignore`.
