@@ -7,7 +7,9 @@ links:
 - REQ009: TPthl6ACqqxVhE5K1OS1TzF4NWve4V9nzT5xcJBuIDg=
 normative: true
 ref: ''
-references: []
-reviewed: hfHYWlRzRK6UhEYj79BYcMv7eqtkt-UfS6ouskecvmc=
+references:
+- path: ml/tests/data/test_loader.py
+  type: file
+reviewed: _c-y8GaU00y1ZjZthdAONubZuBe6dJ-6fsSaGhhL2T0=
 text: |
-  TODO
+  ml/tests/data/test_loader.py::test_split_is_disjoint_by_junction_id (zbiory junction_id train/val/test sa rozlaczne i pokrywaja calosc, pary z augmentacja zostaja w zbiorze swojego junctionu). Test nie sprawdza node_seq, patrz REQ022.

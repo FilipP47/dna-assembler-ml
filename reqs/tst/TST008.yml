@@ -7,7 +7,9 @@ links:
 - REQ008: cWBHn0l4EgzqS0D7dwYLDFIPqupnoEesUKJ7_etkfOw=
 normative: true
 ref: ''
-references: []
-reviewed: ll6cM74XdZhfFUqScjXYR3Lc-xbIdB0f5I_R8z-7xls=
+references:
+- path: ml/tests/training/test_train.py
+  type: file
+reviewed: 5BAG1R-lzHrQxxpsAjeFa84iT6vFQyvGOrZ4gd6_BkQ=
 text: |
-  TODO
+  ml/tests/training/test_train.py::test_no_cov_flag_disables_coverage_features, ::test_no_cov_dataset_has_empty_cov_feat, ::test_no_cov_output_ignores_repeat_len_and_coverage (zmiana repeat_len, cov_ratio_max, total_reads i pokryc nie zmienia wyjscia modelu), ::test_repeat_len_is_not_an_input_with_coverage_on, ::test_train_no_cov_saves_cov_feat_dim_zero (cov_feat_dim = 0 w model_hparams, z ktorego czyta evaluate).

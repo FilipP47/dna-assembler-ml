@@ -7,7 +7,9 @@ links:
 - REQ028: k7FhuVWKTKIRyo-Sjj-zi9jtG21zZ8imseTOVzK2SiU=
 normative: true
 ref: ''
-references: []
-reviewed: yuu3mLDBQq6Xq2RmTAFOjPdM5eihJZeeghMfFwpCx84=
+references:
+- path: ml/tests/training/test_train.py
+  type: file
+reviewed: PHgEcKQavaaaMgSOlIjxHpreVrIdBeA5hyqoTXWH2I8=
 text: |
-  TODO
+  ml/tests/training/test_train.py::test_same_seed_gives_same_first_epoch_metrics (dwa treningi CPU z tym samym seedem, te same metryki po 1. epoce), ::test_seed_and_cudnn_flags_set_before_data_loading (stan random, numpy, torch i cudnn.deterministic=True, benchmark=False w chwili wczytania CSV).
