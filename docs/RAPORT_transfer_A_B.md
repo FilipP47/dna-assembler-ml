@@ -196,7 +196,66 @@ Zbadano 7 potencjalnych zmiennych wyjasniajacych rozrzut ~15pp miedzy najslabszy
 
 ---
 
-## 7. Otwarte pytania / kolejne kroki
+## 7. Ograniczenia techniczne (audyt kodu, listopad 2026)
+
+Przy przygotowywaniu repozytorium do wersji koncowej kazde wymaganie zostalo
+sprawdzone w kodzie. Zadne z ponizszych ustalen nie zmienia wnioskow z
+sekcji 4-6, ale kazde wyznacza granice tego, co wyniki dowodza.
+
+### 7.1 Dane wygenerowane nie sa powtarzalne bit w bit
+Odczyty sa deterministyczne dla danego seeda, ale kolejnosc przejscia grafu
+de Bruijna zalezy od `HashMap` z losowym `RandomState`. Kolejnosc wierszy,
+`contig_id` i liczba etykiet zmieniaja sie o ok. 1% miedzy uruchomieniami.
+Pliki CSV treningowe oraz listy podzialow genomow nalezy wiec traktowac jako
+ustalone artefakty eksperymentu (zostaly zarchiwizowane), a nie jako cos, co
+kazdy odtworzy identycznie.
+
+### 7.2 Okno sekwencji: 100 nt w generatorze, 150 w treningu
+Generator ogranicza kontekst do 100 nt, a galaz do 100 nt. Trening uzywa
+`--context_len 150`, wiec 50 pozycji kontekstu to zawsze padding i nic nie jest
+obcinane przez model. Spadek trafnosci przy `repeat_len >= 21` (sekcja 5) nie
+wynika wiec z obciecia okna przez `context_len`. Czy dluzszy kontekst
+w generatorze poprawilby wynik dla dlugich powtorzen, pozostaje pytaniem
+otwartym (wymaga ponownej generacji danych).
+
+### 7.3 Podzial train/val jest po wierszach CSV, nie po wezlach grafu
+W danych *S. cerevisiae* 71% oznaczonych wierszy dzieli `node_seq` z innym
+wierszem. Dla grup A i B dotyczy to wylacznie walidacji, early stoppingu
+i wyboru najlepszego checkpointu: walidacyjne ok. 73% moze byc nieco
+optymistyczne. Zbior testowy jest rozdzielony po genomach, wiec wyniki
+zero-shot (sekcja 4) nie sa tym dotkniete.
+
+### 7.4 Baseline max-coverage
+Remisy w pokryciu sa rozstrzygane alfabetycznie (A, C, G, T). Baseline uzywa
+tych samych filtrow co loader (progi 10 i 5 sa zapisane w dwoch miejscach;
+zgodnosc pilnuje test), dlatego liczby `n_junctions` zgadzaja sie 1:1.
+
+### 7.5 Genomy wielorekordowe
+Wielorekordowy plik FASTA (chromosom i plazmidy) jest sklejany w jedna
+sekwencje. Na granicach powstaja sztuczne k-mery i junctiony. Wplyw nie byl
+mierzony; spodziewany jest maly.
+
+### 7.6 Augmentacja "RC"
+Wariant RC odwraca i komplementuje kazda sekwencje osobno, zachowujac
+kolejnosc kontekst, potem galaz. To nie jest prawdziwy widok z nici
+przeciwnej.
+
+### 7.7 Obcinanie kontekstu w kodowaniu one-hot (poprawione)
+Przy `--context_len` mniejszym niz dlugosc kontekstu obcinany byl koniec
+najdalszy od skrzyzowania. Poprawiono w `JunctionDataset._build_pairs`
+(obciecie przed odwroceniem RC). Eksperymenty uzywaly 150, wiec nie byly
+tym dotkniete.
+
+### 7.8 Odtworzenie wynikow w czystym klonie repozytorium
+Wariant A farthest (seed 42) odtworzono na swiezym klonie (joby 94577
+i 94594, torch 2.11.0+cu128): walidacyjna junction accuracy 73,13% -> 72,71%,
+zero-shot srednia wazona 71,98% -> 71,57% (srednia prosta 72,59% -> 72,24%),
+te same 6345 junctionow. Roznica miesci sie w odchyleniu miedzy seedami.
+Odtworzono jeden wariant i jeden seed.
+
+---
+
+## 8. Otwarte pytania / kolejne kroki
 
 - [ ] Grupa B, biny posrednie `repeat_len` (1-20): odroznic prawdziwy czesciowy sygnal od szumu malej proby (n=72-536) - wymagaloby wiekszej puli testowej.
 - [ ] Grupa C (kontrola, rozszerzenie istniejacego zbioru 5 organizmow z roznych rodzin) - z oryginalnego planu, jeszcze nie wykonana w ramach tej sesji.

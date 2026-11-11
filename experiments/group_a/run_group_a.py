@@ -5,7 +5,7 @@ genomic distance): train on ~90 E. coli genomes, evaluate zero-shot on
 10 held-out strains chosen as the phylogenetically farthest from the
 training pool (see select_heldout.py). Compares the generalist model against
 the max-coverage baseline, per held-out organism and aggregated. Results and
-rationale: RAPORT_TRANSFER.md.
+rationale: docs/RAPORT_transfer_A_B.md.
 
 Solo-reference training (one model per held-out organism, trained and
 evaluated on that organism alone) and the 10/30/60/90 training-size ablation

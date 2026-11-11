@@ -1,7 +1,7 @@
 # experiments/hpc/
 
 Skrypty, ktore wygenerowaly wyniki transferu miedzy genomami (grupa A/B,
-patrz `RAPORT_TRANSFER.md`), teraz przenosne miedzy klastrem SLURM i
+patrz `docs/RAPORT_transfer_A_B.md`), teraz przenosne miedzy klastrem SLURM i
 Dockerem. Logika kazdego zadania zyje w `tasks/*.sh` (brak `#SBATCH`, brak
 `module load`); `*_array.sh` wola ja pod SLURM-em, `run_local.sh` wola ja
 bez SLURM-a, rownolegle przez `xargs -P`. Wszystkie sciezki i parametry
@@ -125,7 +125,7 @@ nie oczekuj bitowej identycznosci miedzy sprzetem.
 
 ## Odtwarzalnosc: ml/ przed i po migracji na uv
 
-Grupa A/B (`RAPORT_TRANSFER.md`) byla trenowana na klastrze gdy `ml/`
+Grupa A/B (`docs/RAPORT_transfer_A_B.md`) byla trenowana na klastrze gdy `ml/`
 jeszcze uzywalo `requirements.txt` z nieprzypietymi zakresami wersji
 (`torch>=2.0`, `polars>=0.20`, `numpy>=1.24`, `scikit-learn>=1.3`, ...) i
 bez pliku lock - `uv pip install -r requirements.txt` resolvowal co popadlo
