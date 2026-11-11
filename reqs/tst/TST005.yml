@@ -4,12 +4,12 @@ header: |
   Test filtrow loadera
 level: 2.1
 links:
-- REQ005: nB_C8fivh58yKqpQFJzDy09uRCg1NfRxcH7a4ESfw-c=
+- REQ005: 33EYC4BfBv6Xr6fPf9ez6VqCzWHUPKWkO4DDtGMsZ34=
 normative: true
 ref: ''
 references:
 - path: ml/tests/data/test_loader.py
   type: file
-reviewed: QNJKLymmAQGtXTihJhimCPhrrPh2NhcQR3l6N0BDAZ0=
+reviewed: 7TKMeMU8EJrv1I2FpKNZBKS1n3zgC1fXpTGx_VO5Hj8=
 text: |
-  ml/tests/data/test_loader.py::test_length_filters_drop_short_context_and_short_branches, ::test_custom_length_thresholds, ::test_only_labeled_drops_ambiguous_and_na, ::test_no_upper_length_limit_and_truncation_at_encoding (granice 10/5, only_labeled, brak gornej granicy, obciecie w JunctionDataset).
+  ml/tests/data/test_loader.py::test_length_filters_drop_short_context_and_short_branches, ::test_custom_length_thresholds, ::test_only_labeled_drops_ambiguous_and_na, ::test_no_upper_length_limit_and_truncation_at_encoding (granice 10/5, only_labeled, brak gornej granicy, kontekst zachowuje ostatnie bazy takze w wariancie RC, galaz pierwsze).
