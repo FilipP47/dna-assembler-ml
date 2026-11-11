@@ -93,3 +93,18 @@ def test_augment_true_is_exactly_balanced_and_full_coverage() -> None:
         per_junction.setdefault(s.junction_id, []).append(s.label)
     for jid, ls in per_junction.items():
         assert sorted(ls) == [0, 0, 1, 1], f"junction {jid} not fully covered: {ls}"
+
+
+def test_pair_position_independent_of_augment() -> None:
+    """The base pair's position must not depend on the ``augment`` flag.
+
+    With ``augment=True`` every base pair is followed by three variants, so
+    every 4th sample is the base pair. Its label must equal the label of the
+    same pair built with ``augment=False`` (same ``pair_seed``).
+    """
+    df = _make_df(300)
+    plain = _labels(JunctionDataset(df, augment=False, use_cov_feat=False, pair_seed=5))
+    augmented = _labels(JunctionDataset(df, augment=True, use_cov_feat=False, pair_seed=5))
+
+    assert len(augmented) == 4 * len(plain)
+    assert augmented[::4] == plain
