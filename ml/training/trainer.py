@@ -18,16 +18,15 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn, optim
 from torch.utils.data import DataLoader
 
+from models.base import BaseJunctionModel
 from training.device import resolve_device
 from training.metrics import EpochMetrics, MetricsTracker, TrainingHistory
-from models.base import BaseJunctionModel
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +51,11 @@ class Trainer:
         lr_patience:    int   = 5,
         lr_factor:      float = 0.5,
         grad_clip:      float = 1.0,
-        device:         Optional[str] = None,
+        device:         str | None = None,
         use_wandb:      bool  = False,
         wandb_project:  str   = "dna-assembler-ml",
-        wandb_config:   Optional[dict] = None,
-        run_name:       Optional[str] = None,
+        wandb_config:   dict | None = None,
+        run_name:       str | None = None,
         provenance:     dict[str, Any] | None = None,
     ):
         """Initialise the trainer, optimiser, scheduler, and optional W&B run.
@@ -168,7 +167,8 @@ class Trainer:
                 "val/recall":          val.recall,
             }, step=epoch)
         except Exception:
-            pass
+            # W&B must never break training; the reason is visible at DEBUG level.
+            logger.debug("W&B epoch log failed", exc_info=True)
 
     def _wandb_log_best(self, epoch: int, val: EpochMetrics, ckpt_path: Path) -> None:
         """Update W&B run summary and upload the best checkpoint as an artifact.
@@ -192,7 +192,7 @@ class Trainer:
             artifact.add_file(str(ckpt_path))
             wandb.log_artifact(artifact)
         except Exception:
-            pass
+            logger.debug("W&B best-checkpoint upload failed", exc_info=True)
 
     def fit(
         self,
@@ -262,7 +262,7 @@ class Trainer:
                 import wandb
                 wandb.finish()
             except Exception:
-                pass
+                logger.debug("W&B finish failed", exc_info=True)
 
         return history
 

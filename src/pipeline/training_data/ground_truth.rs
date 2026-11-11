@@ -170,7 +170,7 @@ mod tests {
     fn unique_continuation() {
         let reference = "AAAACGTTTTT";
         let context = "AAAACG";
-        let branches = &[b'T', b'A'];
+        let branches = b"TA";
         let gt = find_ground_truth(context, reference, branches);
         assert!(matches!(gt, GroundTruth::Known { base_char: 'T', .. }));
     }
@@ -179,7 +179,7 @@ mod tests {
     fn ambiguous_when_repeat() {
         let reference = "AAAACGTTTAAAACGAAA";
         let context = "AAAACG";
-        let branches = &[b'T', b'A'];
+        let branches = b"TA";
         let gt = find_ground_truth(context, reference, branches);
         assert_eq!(gt, GroundTruth::Ambiguous);
     }
@@ -188,7 +188,7 @@ mod tests {
     fn not_found_when_missing() {
         let reference = "TTTTTTTTTT";
         let context = "AAAACG";
-        let branches = &[b'T', b'A'];
+        let branches = b"TA";
         let gt = find_ground_truth(context, reference, branches);
         assert_eq!(gt, GroundTruth::NotFound);
     }
@@ -208,7 +208,7 @@ mod tests {
         // strand 5'-C[GA]T-3' the next base is 'T'.
         let reference = "ATCG";
         let context = "GA";
-        let branches = &[b'T', b'C'];
+        let branches = b"TC";
 
         let gt = find_ground_truth(context, reference, branches);
 
