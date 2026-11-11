@@ -23,6 +23,12 @@ Podzial odpowiedzialnosci miedzy jezykami:
   (grupa A); efekt nie rozciaga sie na cala rodzine Enterobacteriaceae (grupa B).
 - `experiments/group_a/README.md` - jak odtworzyc eksperyment grupy A.
 
+Glowny wynik pracy, transfer miedzy genomami w grupach A i B, opisuje
+`docs/RAPORT_transfer_A_B.md`. Sekcja 7 raportu zbiera ograniczenia techniczne
+znalezione przy audycie kodu oraz wynik odtworzenia na czystym klonie. Skrypty,
+ktore wygenerowaly te wyniki (SLURM i Docker), sa w `experiments/hpc/`; jego
+README opisuje uruchomienie i odtwarzalnosc srodowiska.
+
 ## Szybki start
 
 Budowanie: `cargo build --release` (binarka w `target/release/dna-assembler`).
