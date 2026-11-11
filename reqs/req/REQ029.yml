@@ -1,0 +1,14 @@
+active: true
+derived: false
+header: |
+  Zalozenie: wielorekordowy FASTA jest sklejany
+level: '1.10'
+links: []
+normative: false
+ref: ''
+references:
+- path: src/main.rs
+  type: file
+reviewed: bdTrKhUR5Hjm9GW6G6r-ay39pA8f1kNbkUjagEWZx5M=
+text: |
+  Wszystkie rekordy pliku referencyjnego sa sklejane w jedna sekwencje bez separatora (load_reference w src/main.rs). Dla genomow z kilkoma chromosomami lub plazmidami powstaja sztuczne k-mery na granicach rekordow, symulator moze losowac odczyty przechodzace przez te granice, a etykiety sa liczone na sklejonej sekwencji.

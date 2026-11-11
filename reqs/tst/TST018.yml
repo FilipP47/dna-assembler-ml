@@ -1,0 +1,14 @@
+active: true
+derived: false
+header: |
+  Odtworzenie A farthest (reczny)
+level: 4.6
+links: []
+normative: false
+ref: ''
+references:
+- path: experiments/hpc/compare_reproduction.py
+  type: file
+reviewed: 1eS1GpfDml--YwHGpjw3f8ZpFozqeXo4ONDDQ7NLaCM=
+text: |
+  Dotyczy REQ018 (nienormatywne, wiec Doorstop nie pozwala na link). Test reczny na klastrze wedlug experiments/hpc/README.md; wynik ocenia experiments/hpc/compare_reproduction.py --variant group_a_farthest (kod wyjscia 0 w granicach +/- 1 pp sredniej wazonej).

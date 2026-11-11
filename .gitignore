@@ -60,3 +60,6 @@ experiments/hpc/data/**/*_candidates.tsv
 # małe wyniki ewaluacji z HPC (dowód liczb z raportu) - śledzone
 !experiments/hpc/results/
 experiments/hpc/results/checkpoints*/
+
+# Doorstop HTML output
+public/

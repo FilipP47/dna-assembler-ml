@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Schemat CSV w loaderze
+level: 2.2
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/data/loader.py
+  type: file
+reviewed: 8IMNNByznFyJZYT7kzUQ86k1FfiENs3_pD-Fr6iP--0=
+text: |
+  Loader wymaga 19 kolumn z REQUIRED_COLS i konczy sie ValueError, gdy ktorejs brakuje. Kolumny k i repeat_len sa opcjonalne, bo starsze CSV ich nie maja. Wartosci NA, na, NaN, nan i puste sa traktowane jako null. Niepoprawne liczby calkowite sa bez bledu zamieniane na 0, a niepoprawne pokrycia i cov_ratio_max na null.

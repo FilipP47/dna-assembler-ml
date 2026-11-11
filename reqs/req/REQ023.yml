@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Zalozenia symulatora
+level: 1.6
+links:
+- CAT001: qtObB17RKohbi2rkociZso-Cj7X5rjuo1e8VR6TBNwk=
+normative: true
+ref: ''
+references:
+- path: src/pipeline/simulator/random.rs
+  type: file
+reviewed: h5uZ-4Mhtky2wcFrjRulhfrBN7Zik0aHGBOqi8xYNVQ=
+text: |
+  Symulator losuje start kazdego odczytu z rozkladu jednostajnego na [0, dlugosc_genomu - read_length]. Odczyty maja stala dlugosc read_length, pochodza tylko z nici prostej i nie maja bledow sekwencjonowania (sa dokladnymi podciagami referencji). Liczba odczytow to ceil(dlugosc_genomu * coverage / read_length). Genom krotszy niz read_length konczy sie bledem.

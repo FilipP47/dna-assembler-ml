@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Blad --device cuda
+level: 4.1
+links:
+- REQ013: -mUi0O0r78fa46WoNjiyFJ1SwNDuYIEc699A29Lj9yk=
+normative: true
+ref: ''
+references:
+- path: ml/tests/training/test_device.py
+  type: file
+reviewed: 8KlxZjzydxiBxiOQxhmaDukmiEjU30ponMniPbGhyPc=
+text: |
+  ml/tests/training/test_device.py::test_cuda_on_cpu_build_points_to_cu128, ::test_cuda_build_without_gpu.

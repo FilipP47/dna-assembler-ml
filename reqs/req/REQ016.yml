@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Smoke test w Dockerze bez sieci
+level: 4.4
+links:
+- CAT004: ZMdfGXzJMu7pq0Jiymarvl_IK7j5ED8b5BfOsWRnKkE=
+normative: true
+ref: ''
+references:
+- path: Dockerfile
+  type: file
+- path: experiments/hpc/smoke_test_docker.sh
+  type: file
+reviewed: noc9fLtjbsq09An2YEZRJEDLBDaZBmxukYjnDk4B2iI=
+text: |
+  Zbudowany obraz Docker przechodzi experiments/hpc/smoke_test_docker.sh (generacja CSV dla 3 lokalnych genomow, trening 2 epoki, ewaluacja) przy `docker run --network none`. Budowa obrazu wymaga sieci.

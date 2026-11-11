@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Warianty augmentacji
+level: 2.4
+links:
+- REQ007: qJqGqs9HVc64fhvYbn7KYvg0fqSjcSnDw-j58EBjkws=
+normative: true
+ref: ''
+references:
+- path: ml/tests/data/test_dataset.py
+  type: file
+reviewed: 3eyKib5kzQzeZ_0gKVGJWg5B2dd4TBMNUtjdsB8sAag=
+text: |
+  ml/tests/data/test_dataset.py::test_augment_true_is_exactly_balanced_and_full_coverage (4 probki na pare, etykiety 0, 0, 1, 1).

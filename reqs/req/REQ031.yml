@@ -1,0 +1,16 @@
+active: true
+derived: false
+header: |
+  Logowanie hasha commitu w treningu
+level: 4.7
+links:
+- CAT004: ZMdfGXzJMu7pq0Jiymarvl_IK7j5ED8b5BfOsWRnKkE=
+normative: true
+ref: ''
+references:
+- path: ml/training/trainer.py
+  type: file
+reviewed: 2lxZBzHAs8fXRH4F8Xr3hdz0NoAN3DAdKCLjT-94AiM=
+status: todo
+text: |
+  Kazdy trening zapisuje uzyty config, hash commitu git i metryki koncowe (wymaganie z CLAUDE.md projektu). Status: TODO, niespelnione. trainer.py nie zapisuje hasha commitu.

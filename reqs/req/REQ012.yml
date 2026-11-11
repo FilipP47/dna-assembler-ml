@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Rozlaczne listy test/train
+level: 3.3
+links:
+- CAT003: mepXMUSbCSB4apIBByjRIxridj2JMJQ8CcA3IDn0Y4w=
+normative: true
+ref: ''
+references:
+- path: experiments/hpc/data/genomes_ecoli/full_pool_100.txt
+  type: file
+- path: experiments/hpc/data/genomes_enterobacteriaceae/full_pool_100.txt
+  type: file
+reviewed: zuSiPQ5pDNDCdLg3pTvTEh3cfTKxsA9hFHLCaWvuuPw=
+text: |
+  Dla grupy A (genomes_ecoli) i B (genomes_enterobacteriaceae) i obu wariantow (farthest, random) test_<wariant>_10.txt ma 10 unikalnych genomow, train_90_for_<wariant>_split.txt ma 90, listy sa rozlaczne i razem daja full_pool_100.txt, a genomy z dropped_near_duplicates.txt nie wystepuja w puli.

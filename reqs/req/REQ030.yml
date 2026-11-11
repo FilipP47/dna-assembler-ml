@@ -1,0 +1,14 @@
+active: true
+derived: false
+header: |
+  Ograniczenie: unikalnosc junction_id
+level: '2.10'
+links: []
+normative: false
+ref: ''
+references:
+- path: ml/data/loader.py
+  type: file
+reviewed: J-KNRjS77vR10FSwLuZiGWTErOD4WjDvFrxGqGAgQH0=
+text: |
+  junction_id jest licznikiem unikalnym w obrebie jednego CSV, z lukami, bo licznik rosnie tez dla pominietych junctionow. Przy wczytaniu katalogu loader dodaje indeks_pliku * 1 000 000, gdzie indeks to pozycja pliku na posortowanej liscie *.csv. Zaklada to mniej niz 1 000 000 wierszy na plik, inaczej identyfikatory z roznych plikow moga sie pokryc. Identyfikatory zaleza tez od zestawu plikow w katalogu.

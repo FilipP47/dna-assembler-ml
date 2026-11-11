@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Odczyty deterministyczne dla seeda
+level: 1.4
+links:
+- CAT001: qtObB17RKohbi2rkociZso-Cj7X5rjuo1e8VR6TBNwk=
+normative: true
+ref: ''
+references:
+- path: src/pipeline/simulator/random.rs
+  type: file
+reviewed: ktr_w48c2Zl0PNN2JI0Ubfe_eyPc8ykEZ25DcFvrnL4=
+text: |
+  Symulator dla tego samego genomu, read_length, coverage i --seed generuje identyczny zbior odczytow w tej samej kolejnosci.

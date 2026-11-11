@@ -1,0 +1,12 @@
+active: true
+derived: false
+header: |
+  Dane i model ML
+level: 2
+links: []
+normative: true
+ref: ''
+references: []
+reviewed: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+text: |
+  Wczytywanie CSV, budowa par, augmentacja, model mv1, trening i metryki (ml/).

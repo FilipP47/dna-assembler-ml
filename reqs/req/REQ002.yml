@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Wiersz CSV na junction
+level: 1.2
+links:
+- CAT001: qtObB17RKohbi2rkociZso-Cj7X5rjuo1e8VR6TBNwk=
+normative: true
+ref: ''
+references:
+- path: src/pipeline/training_data/generator.rs
+  type: file
+reviewed: GgfUSDg2fqqnkD_LhjzbleB9gFQyk0E93cwhycWVVH8=
+text: |
+  Dla kazdego junctionu z co najmniej 2 galeziami o pokryciu >= 2 zapisywany jest jeden wiersz CSV z 21 kolumnami: junction_id, contig_id, depth_in_contig, out_degree, in_degree, node_seq, context_seq (do 100 nt), branch_{A,C,G,T}_seq i branch_{A,C,G,T}_cov (sekwencja do 100 nt, NA gdy galezi nie ma), ground_truth, gt_ambiguous, cov_ratio_max, total_reads, k, repeat_len.

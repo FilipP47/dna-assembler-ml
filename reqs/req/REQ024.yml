@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Filtr pokrycia galezi
+level: 1.7
+links:
+- CAT001: qtObB17RKohbi2rkociZso-Cj7X5rjuo1e8VR6TBNwk=
+normative: true
+ref: ''
+references:
+- path: src/pipeline/training_data/generator.rs
+  type: file
+reviewed: B_7_l_pBWMpBRqdjRgIfbv1tTYW2ogJgL9iPzIaZnhQ=
+text: |
+  Galezie z pokryciem krawedzi ponizej min_branch_coverage = 2 sa pomijane (sekwencja i pokrycie NA). Jesli po filtrze zostaja mniej niz 2 galezie, wiersz nie jest zapisywany.

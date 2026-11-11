@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Czytelny blad przy --device cuda bez CUDA
+level: 4.1
+links:
+- CAT004: ZMdfGXzJMu7pq0Jiymarvl_IK7j5ED8b5BfOsWRnKkE=
+normative: true
+ref: ''
+references:
+- path: ml/training/device.py
+  type: file
+reviewed: qxTaRqcgyKwmZghWClemGSpq9NJm0n3rhnlPvo2uAi0=
+text: |
+  --device cuda (takze cuda:N) bez dostepnego CUDA konczy sie RuntimeError z przyczyna: torch w wersji CPU-only (z podpowiedzia o grupie cu128) albo brak widocznego GPU. Dotyczy train i evaluate (resolve_device).

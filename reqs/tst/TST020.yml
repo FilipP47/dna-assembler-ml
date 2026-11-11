@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Agregacja junction_accuracy
+level: 2.5
+links:
+- REQ020: T2H34iNQMkY_HmFiIW5mAI7yveyJPiHLoRahINBUW90=
+normative: true
+ref: ''
+references:
+- path: ml/tests/training/test_metrics.py
+  type: file
+reviewed: Aw7WubIjicJWDCdInXgF71zKoDWlz8psayqONMGm_34=
+text: |
+  ml/tests/training/test_metrics.py::test_junction_correct_only_when_all_pairs_correct, ::test_junction_pairs_split_across_batches.

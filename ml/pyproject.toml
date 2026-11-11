@@ -23,6 +23,7 @@ dependencies = [
 dev = [
     "ruff>=0.16",
     "pytest>=8.0",
+    "doorstop>=3.2",
 ]
 docs = [
     "mkdocs>=1.5",

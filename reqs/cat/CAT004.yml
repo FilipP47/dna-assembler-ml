@@ -1,0 +1,12 @@
+active: true
+derived: false
+header: |
+  Powtarzalnosc i uruchamianie
+level: 4
+links: []
+normative: true
+ref: ''
+references: []
+reviewed: ZMdfGXzJMu7pq0Jiymarvl_IK7j5ED8b5BfOsWRnKkE=
+text: |
+  Srodowisko uv i Docker, skrypty SLURM oraz odtwarzalnosc wynikow.

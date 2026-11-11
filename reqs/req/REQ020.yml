@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Metryka junction_accuracy
+level: 2.5
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/training/metrics.py
+  type: file
+reviewed: Q7oOnVtm7pk-VXydwxZKpq2nkGUuDlsJNoDJuuQYg4M=
+text: |
+  Junction jest liczony jako poprawny tylko wtedy, gdy wszystkie jego pary (grupowane po junction_id, takze gdy sa rozlozone na kilka batchy) sa sklasyfikowane poprawnie. junction_accuracy to odsetek takich junctionow, pair_accuracy to odsetek poprawnych par.

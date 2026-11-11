@@ -1,0 +1,14 @@
+active: true
+derived: false
+header: |
+  Proces: usuwanie near-duplikatow (Mash)
+level: 3.4
+links: []
+normative: false
+ref: ''
+references:
+- path: experiments/hpc/data/genomes_ecoli/select_split.py
+  type: file
+reviewed: yDPV33bHwbdOG_AWiF0YeHQWuXOv2dOwVSmqXHOWQBQ=
+text: |
+  select_split.py usuwa near-duplikaty zachlannie: genom jest odrzucany, gdy jego odleglosc Mash do ktoregos z juz zachowanych jest mniejsza niz --dedup-threshold (domyslnie 0.0005). Pule 100 genomow losuje dopiero z zachowanych (seed 42). Argumenty faktycznego wywolania nie zostaly zapisane, wiec uzycie wartosci domyslnej nie jest potwierdzone.

@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Sciezki w skryptach SLURM
+level: 4.2
+links:
+- CAT004: ZMdfGXzJMu7pq0Jiymarvl_IK7j5ED8b5BfOsWRnKkE=
+normative: true
+ref: ''
+references:
+- path: experiments/hpc/config.sh
+  type: file
+reviewed: 9tJIL92dsoKeuMhbg7sAXtODoSdsS2lZS8uyJhaJVpg=
+text: |
+  Kazdy skrypt z #SBATCH w experiments/hpc/ znajduje config.sh przez SLURM_SUBMIT_DIR, a dirname BASH_SOURCE sluzy tylko jako fallback przy uruchomieniu bez sbatch.

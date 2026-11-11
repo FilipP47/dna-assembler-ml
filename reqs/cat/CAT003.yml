@@ -1,0 +1,12 @@
+active: true
+derived: false
+header: |
+  Ewaluacja i eksperymenty
+level: 3
+links: []
+normative: true
+ref: ''
+references: []
+reviewed: mepXMUSbCSB4apIBByjRIxridj2JMJQ8CcA3IDn0Y4w=
+text: |
+  Ewaluacja zero-shot, baseline max-coverage i podzialy genomow grup A/B (ml/training/evaluate.py, experiments/hpc/).

@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Potok tworzy contigi
+level: 1.1
+links:
+- CAT001: qtObB17RKohbi2rkociZso-Cj7X5rjuo1e8VR6TBNwk=
+normative: true
+ref: ''
+references:
+- path: src/main.rs
+  type: file
+- path: src/pipeline/assembler/simple.rs
+  type: file
+reviewed: 6cszZgfj9zO20v195oFcdVShWv-rcMIgjAVDNO-RDqk=
+text: |
+  Dla genomu referencyjnego (FASTA) i zadanego --k podkomenda `pipeline` symuluje odczyty, buduje graf de Bruijna i zapisuje `<results-dir>/contigs.fasta`. Domyslne k w CLI to 31, eksperymenty uzywaja k=21.

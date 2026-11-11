@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Podzialy z list w repo
+level: 4.5
+links:
+- CAT004: ZMdfGXzJMu7pq0Jiymarvl_IK7j5ED8b5BfOsWRnKkE=
+normative: true
+ref: ''
+references:
+- path: experiments/hpc/organize_splits.sh
+  type: file
+- path: experiments/hpc/organize_splits_B.sh
+  type: file
+reviewed: m4ygAv7KAUvxzK3oOBttTqy5eQHIEFLmJG0EGJ3gYV8=
+text: |
+  Podzialy genomow na train i test pochodza z commitowanych list w experiments/hpc/data/genomes_*/output/. organize_splits.sh i organize_splits_B.sh tworza z nich symlinki w data/training/group_{a,b}/. Potok nie losuje podzialow od nowa.

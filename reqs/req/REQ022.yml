@@ -1,0 +1,12 @@
+active: true
+derived: false
+header: |
+  Uwaga: wiersze CSV dziela wezly grafu
+level: 2.8
+links: []
+normative: false
+ref: ''
+references: []
+reviewed: GVIiTu1KcYEMKyCUErwrHq9JhJkLsT08bElGEwRDRlg=
+text: |
+  Ten sam wezel grafu moze byc zapisany w kilku wierszach, gdy contigi z roznych sciezek wejsciowych koncza sie na tym samym junctionie. W cerevisiae_training.csv (k=21, 100x) 2824 z 3965 oznaczonych wierszy (71%) dzieli node_seq i identyczne sekwencje galezi z innym wierszem, a w 1303 z 1387 takich grup etykiety sa rozne. Podzial po wierszach (REQ009) moze rozdzielic takie wiersze miedzy train i val. W eksperymentach A/B test jest rozdzielony po genomach, wiec dotyczy to tylko walidacji i early stoppingu. Kod nie jest zmieniany.

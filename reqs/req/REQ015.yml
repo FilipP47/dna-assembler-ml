@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Stale srodowisko uv
+level: 4.3
+links:
+- CAT004: ZMdfGXzJMu7pq0Jiymarvl_IK7j5ED8b5BfOsWRnKkE=
+normative: true
+ref: ''
+references:
+- path: Dockerfile
+  type: file
+reviewed: bI7SVi7mwSMr8jTiSrrWSGgoD7JTZJRUA-PUcIbI93A=
+text: |
+  Kazde `uv run` w skryptach experiments/hpc/ ma --no-sync, obraz Docker ustawia UV_NO_SYNC=1, a kazde `uv sync` (skrypty i Dockerfile) ma --frozen.

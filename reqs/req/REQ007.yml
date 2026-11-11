@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Augmentacja par
+level: 2.4
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/data/dataset.py
+  type: file
+- path: ml/training/train.py
+  type: file
+reviewed: pvKS3DZLRgVkYHO3vd9GweXQoJr92SFshSqHL4muJ1E=
+text: |
+  Przy augment=True kazda para (poprawna, bledna galaz), czyli jedna na kazda bledna galaz junctionu, daje 4 probki: oryginal, zamiane pozycji, reverse complement i reverse complement z zamiana. Wariant RC odwraca kazda sekwencje (kontekst i obie galezie) osobno i zachowuje kolejnosc kontekst, potem galaz, wiec nie jest to widok junctionu z nici przeciwnej. train.py wlacza augmentacje tylko dla zbioru treningowego.

@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Pozycja poprawnej galezi
+level: 2.3
+links:
+- REQ006: lKh6yBJvnZxEXoR5-epXz6ci_NVoOTbUlQLkPm5IvVA=
+normative: true
+ref: ''
+references:
+- path: ml/tests/data/test_dataset.py
+  type: file
+reviewed: mxPwZ3oESBDtMJpl9RyidkEhCes5ROaw560uYYD-1eg=
+text: |
+  ml/tests/data/test_dataset.py::test_pair_position_assignment_is_deterministic, ::test_pair_position_independent_of_augment, ::test_augment_false_label_distribution_is_balanced.

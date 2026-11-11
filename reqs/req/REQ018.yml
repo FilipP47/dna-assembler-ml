@@ -1,0 +1,14 @@
+active: true
+derived: false
+header: |
+  Odtwarzalnosc wyniku A farthest
+level: 4.6
+links: []
+normative: false
+ref: ''
+references:
+- path: experiments/hpc/README.md
+  type: file
+reviewed: S4LaIgwyDTjTyYi3qZsMUtEVjfHzENZNRmFpNcFxPZA=
+text: |
+  Ponowny trening A farthest z seedem 42 w srodowisku z uv.lock daje srednia junction_accuracy wazona n_junctions na 10 genomach testowych w przedziale [70,98%; 72,98%], czyli 71,98% +/- 1 pp. Zwykla srednia referencji (72,59%) nie jest tu uzywana. Procedura: experiments/hpc/README.md, sekcja "Odtworzenie wyniku A farthest (seed 42)". Ostatnie odtworzenie: 71,57%.

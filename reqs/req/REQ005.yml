@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Filtry loadera
+level: 2.1
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/data/loader.py
+  type: file
+reviewed: AU2C1ZJsJ5Gi6FQ2wNnussQb8gN-CYRrZF1j-qQwMn0=
+text: |
+  load_training_csv odrzuca wiersze z context_seq krotszym niz min_context_len (domyslnie 10) albo z najdluzsza galezia krotsza niz min_branch_len (domyslnie 5). Przy only_labeled=True odrzuca tez wiersze z ground_truth = ambiguous albo NA. Gornej granicy dlugosci nie ma: dluzsze sekwencje sa obcinane do context_len i branch_len przy kodowaniu one-hot w JunctionDataset.

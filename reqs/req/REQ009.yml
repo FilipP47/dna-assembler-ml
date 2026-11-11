@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Podzial train/val po wierszach CSV
+level: 2.7
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/data/loader.py
+  type: file
+- path: ml/training/train.py
+  type: file
+reviewed: 34TR3LZ73FD0s59Sn4qAZdVu7qPc3A_BqMbsqyLeBjE=
+text: |
+  Podzial train/val (split_dataset) jest po junction_id, czyli po wierszach CSV, i odbywa sie przed budowa par, wiec pary jednego wiersza nie trafiaja do dwoch zbiorow.

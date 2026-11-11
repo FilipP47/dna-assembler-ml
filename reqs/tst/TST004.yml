@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Powtarzalnosc odczytow
+level: 1.4
+links:
+- REQ004: BWkGklVxW6HOEDGhyrdS6Z9wl7j5gD6DSsRKh2sZ860=
+normative: true
+ref: ''
+references:
+- path: src/pipeline/simulator/random.rs
+  type: file
+reviewed: b352kU4r6eAuR80fsLIe6YaSYXjE7XzhbAp1GhlCffw=
+text: |
+  random.rs::tests::reproducible_with_same_seed (oraz different_seeds_differ). Uruchomienie: cargo test.
