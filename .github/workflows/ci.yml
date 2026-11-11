@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust 1.91 (same as Dockerfile)
+        run: rustup toolchain install 1.91 --profile minimal && rustup default 1.91
+      - name: cargo test
+        run: cargo test --locked
+
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.2"
+      - name: uv sync (dev + cpu, from uv.lock)
+        run: uv sync --frozen
+      - name: pytest
+        run: uv run --no-sync pytest
+      # Runs once reqs/ exists (added together with the doorstop dev dependency).
+      - name: doorstop --error-all
+        if: hashFiles('reqs/req/*.yml') != ''
+        working-directory: .
+        run: uv run --project ml --no-sync doorstop --error-all
