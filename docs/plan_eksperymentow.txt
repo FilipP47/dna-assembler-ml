@@ -1,0 +1,217 @@
+PLAN EKSPERYMENTOW: trening na wielu bakteriach z jednej grupy, test na innych (2026-07-22)
+================================================================================
+
+KONTEKST / SKAD TO WYNIKA
+--------------------------------------------------------------------------------
+Dotychczasowy wynik (RAPORT.md, cerevisiae k=21): model trenowany i testowany na
+JEDNYM organizmie nie bije baseline max-coverage (57.5% vs 57.7%). Diagnoza w
+raporcie: 56% labeled junctionow to krotkie powtorzenia (cov_ratio_max < 0.55),
+gdzie jedyna informacja rozstrzygajaca to "z ktorej kopii powtorzenia pochodzi
+ten kontekst" - fakt o KONKRETNYM genomie, nie regula sekwencyjna. Model w
+5-fold CV na jednym organizmie nie ma jak sie tego nauczyc w sposob generalizujacy.
+
+Mamy tez juz gotowy framework do transferu miedzy organizmami
+(experiments/transfer/: organisms.yaml, prepare_genomes.sh, run_experiments.py,
+notebooki 03_pairwise_transfer_matrix i 04_clustering_and_specialists) uzyty na
+5 organizmach (ecoli, cerevisiae, bsubtilis, mtuberculosis, hpylori). Wynik z
+transfer_matrix.csv: delty transferu sa male i NIE korelujace z filogenaza
+(np. cerevisiae->bsubtilis +7.7pp, ecoli->hpylori +2.6pp, bsubtilis->hpylori
+-5.3pp) - 5 organizmow z roznych czesci drzewa zycia to za malo i za bardzo
+rozrzucone zeby cokolwiek pokazac, wynik to w duzej mierze szum.
+
+HIPOTEZA DO PRZETESTOWANIA
+--------------------------------------------------------------------------------
+Junctiony trudne do rozstrzygniecia to prawie zawsze krotkie powtorzenia
+genomowe (IS elementy/transpozony, kopie operonu rRNA, tandem repeats). Te
+konkretne elementy repetytywne NIE sa losowe - sa charakterystyczne dla
+rodziny/gatunku (wspolna filogeneza, horizontal gene transfer w obrebie
+rodziny). Model trenowany na wielu genomach z jednej grupy taksonomicznej moze
+w teorii nauczyc sie rozpoznawac konkretne rodziny elementow repetytywnych i
+ich flanki (cecha przenoszalna), zamiast pamietac pozycje w jednym genomie
+(cecha nieprzenoszalna).
+
+Pochodna hipoteza, kluczowa dla projektu eksperymentu: jesli to prawda, to
+dokladnosc na held-out powinna maleic MONOTONICZNIE wraz z odlegloscia
+genomowa/filogenetyczna miedzy zbiorem treningowym a testowanym organizmem.
+To jest wlasciwy przedmiot pomiaru - nie trzy oddzielne eksperymenty, tylko
+JEDNA os (odleglosc od puli treningowej) probkowana w trzech punktach.
+
+DLACZEGO HELD-OUT MUSI BYC "NAJDALSZY", NIE LOSOWY
+--------------------------------------------------------------------------------
+Wczesniejsza wersja tego planu zakladala osobna grupe "same-species" (same
+szczepy E. coli) jako "latwy" test. Problem: szczepy jednego gatunku dziela
+>98-99% sekwencji, wiec przy LOSOWYM held-out model moze osiagnac wysoki wynik
+przez zapamietanie niemal identycznych kopii tych samych elementow
+repetytywnych (near-duplicate leakage), a nie przez generalizacje. Taki wynik
+nic by nie mowil o hipotezie.
+
+Rozwiazanie: zamiast losowego podzialu 90/10, held-out w kazdej grupie to
+zawsze NAJDALSZE genomy od reszty puli (wg dystansu genomowego, patrz nizej).
+Dzieki temu:
+- w grupie A (same-species) model NIE MOZE polegac na prawie-duplikatach -
+  wymuszone jest jakies minimum generalizacji nawet w obrebie gatunku;
+- kazda grupa mierzy to samo zjawisko (odleglosc -> dokladnosc) w innej skali,
+  wiec A/B/C tworza spojny gradient zamiast trzech niezaleznych testow.
+
+STRUKTURA EKSPERYMENTU: gradient A > B > C wg odleglosci genomowej
+--------------------------------------------------------------------------------
+  A. Same-species, held-out = NAJDALSZE szczepy - ~90+10 szczepow E. coli,
+     held-out to 10 szczepow o najwiekszym dystansie od reszty puli (np. inna
+     filogrupa niz wiekszosc treningowa - K-12 to filogrupa A, O157:H7 to E,
+     typowe UPEC to B2; jesli pula treningowa to glownie A/B1, held-out z
+     B2/E/F daje realny test). Najmniejsza odleglosc genomowa w calym
+     eksperymencie, ale nie zerowa dzieki doborowi "najdalszych".
+  B. Same-family (Enterobacteriaceae: E. coli, Salmonella, Klebsiella,
+     Citrobacter, Enterobacter, Shigella, ...), held-out = 10 genomow z
+     rodzajow najslabiej reprezentowanych/najdalszych w drzewie rodziny.
+     Srednia odleglosc genomowa - wspolna rodzina elementow IS, ale rozne
+     rodzaje.
+  C. Cross-family / kontrola - rozszerzenie obecnego zbioru 5 organizmow o
+     kolejne z roznych rodzin (mamy juz Firmicutes/bsubtilis, Actinobacteria/
+     mtuberculosis, Campylobacterota/hpylori, Proteobacteria/ecoli,
+     eukaryota/cerevisiae). Tu "najdalszy" jest trywialny - organizmy juz sa
+     maksymalnie odlegle z definicji doboru. Najwieksza odleglosc w
+     eksperymencie, punkt kotwiczacy gradient od gory. Notebook 03/04 juz
+     czesciowo to pokrywa (do rozszerzenia, nie od zera).
+
+Jeden wspolny wykres na koniec: dokladnosc (generalist zero-shot minus
+baseline) na osi Y, jakis miernik odleglosci genomowej (np. mediana dystansu
+Mash held-out<->train) na osi X, punkty dla A, B, C. Malejaca krzywa =
+hipoteza potwierdzona (transfer dziala i zanika z odlegloscia w sposob
+przewidywalny). Plaska krzywa w okolicy 0 = hipoteza odrzucona, sufit 58% z
+RAPORT.md jest twardy niezaleznie od skali/pokrewienstwa danych treningowych.
+
+POMIAR ODLEGLOSCI GENOMOWEJ (potrzebny do doboru "najdalszych" i do wykresu)
+--------------------------------------------------------------------------------
+- Narzedzie: Mash (dystans oparty o k-mer sketching, szybki, bez potrzeby
+  pelnego alignmentu/drzewa filogenetycznego - spojne koncepcyjnie z reszta
+  projektu, ktory i tak mysli w k-merach). NOWA ZALEZNOSC (CLI, poza uv/cargo)
+  - do potwierdzenia przed instalacja, zgodnie z zasada projektu.
+  - Alternatywa bez nowej zaleznosci: uzyc samej taksonomii NCBI (odleglosc w
+    drzewie: ten sam gatunek < ten sam rodzaj < ta sama rodzina < inna rodzina)
+    jako zgrubny proxy zamiast realnego dystansu sekwencji. Prostsze, ale mniej
+    precyzyjne przy wyborze "ktorych dokladnie 10 jest najdalszych" w obrebie A/B.
+- Procedura wyboru held-out w grupie A/B: policzyc macierz dystansow Mash
+  miedzy wszystkimi ~100 kandydatami, wybrac 10 genomow maksymalizujacych
+  minimalna odleglosc do pozostalych 90 (odpowiednik farthest-point sampling) -
+  to zapewnia ze held-out nie ma "prawie-duplikatu" w train.
+
+DOBOR GENOMOW
+--------------------------------------------------------------------------------
+- Zrodlo: NCBI RefSeq/GenBank, przez NCBI Datasets CLI (`datasets download
+  genome taxon "<nazwa taksonu>" --reference --assembly-level complete`) zamiast
+  recznego wpisywania URLi/accessionow jak w obecnym prepare_genomes.sh - przy
+  100 genomach reczna lista nie ma sensu, a nie chce zgadywac konkretnych
+  accessionow z pamieci (ryzyko pomylki). NCBI Datasets CLI trzeba doinstalowac
+  - druga nowa zaleznosc do potwierdzenia (obok Mash), oba to CLI do pobierania/
+  analizy danych, nie zaleznosci pythonowe/rust.
+- Filtry przy wyborze: assembly-level=Complete Genome (kompletne, bez
+  rozdrobnionych scaffoldow - waznie dla jakosci ground-truth), rozmiar genomu
+  w rozsadnym zakresie (np. 2-8 Mbp) zeby czas generowania danych byl
+  przewidywalny.
+- Podzial train/test zawsze na poziomie organizmu (nigdy losowo po
+  junctionach) - inaczej wyciek danych (ten sam genom czesciowo w train i test).
+
+GENEROWANIE DANYCH TRENINGOWYCH
+--------------------------------------------------------------------------------
+- Pipeline Rust bez zmian, parametry ustalone w RAPORT.md jako najlepsze:
+  k=21, coverage=100x, read-length=150 (jak w prepare_genomes.sh).
+- Trzeba oszacowac czas na 100 genomow zanim odpalimy calosc: sprawdzic
+  pipeline_time_s per organizm w experiments/transfer/results/benchmark/
+  benchmark_results.json (mamy juz 5 punktow, mozna ekstrapolowac liniowo wg
+  rozmiaru genomu MBp) i pomnozyc razy 100. Jesli to za dlugo (godziny/dni),
+  rozwazyc: mniejsze coverage (np. 50x) dla pilotazu, albo rownolegle odpalanie
+  kilku genomow na raz (pipeline per-genom jest niezalezny).
+- PILOTAZ NAJPIERW: 15-20 genomow z grupy B (Enterobacteriaceae), WYLACZNIE
+  jako test infrastruktury (czy pobieranie+generowanie+trening dziala
+  end-to-end, ile trwa, ile labeled junctionow wychodzi per genom - moze byc
+  gorzej niz cerevisiae/ecoli przy mniejszych genomach bakteryjnych, warto
+  sprawdzic czy suma z 90 genomow w ogole starcza na sensowny trening). Przy
+  15-20 genomach wynik dokladnosci to szum - to NIE jest test hipotezy,
+  tylko sprawdzenie ze da sie bezpiecznie skalowac do 90+10.
+- Output: data/training/<grupa>/<organizm>_training.csv, jeden katalog per
+  grupa eksperymentu (loader.py juz obsluguje katalog z wieloma CSV i sam
+  offsetuje junction_id - nic nie trzeba zmieniac w Pythonie).
+
+TRENING I EWALUACJA
+--------------------------------------------------------------------------------
+Dla kazdej grupy (A, B, C), held-out = "najdalsze" wg procedury powyzej:
+  1. Model "generalist": trening na polaczonym train-CSV (90 organizmow, jeden
+     katalog, ml/main.py train --data_path data/training/<grupa>/train/).
+  2. Ewaluacja zero-shot: ten sam checkpoint na kazdym z 10 held-out organizmow
+     osobno (junction accuracy per organizm) + na polaczonym zbiorze held-out.
+  3. Baseline do porownania (na held-out):
+     a) heurystyka max-coverage (baseline "za darmo", juz zaimplementowana)
+     b) model solo wytrenowany i oceniany na TYM SAMYM held-out organizmie
+        (gorna referencja - "gdybysmy mieli dane z tego organizmu")
+     c) model generalist zero-shot (WLASCIWY test hipotezy)
+  4. Ablacja wielkosci zbioru treningowego (w grupie B, glownym eksperymencie):
+     wytrenowac generalist na 10 / 30 / 60 / 90 organizmach (te same 10
+     held-out za kazdym razem) i zobaczyc czy accuracy na held-out rosnie z
+     liczba organizmow w treningu. Jesli krzywa rosnie, hipoteza transferu ma
+     dodatkowe poparcie (efekt skaluje sie z danymi, nie tylko z bliskoscia).
+  5. Rozbicie wynikow po repeat_len i cov_ratio_max (jak w notebooku 05) na
+     zbiorze held-out - sprawdzic czy przewaga (jesli jest) koncentruje sie w
+     konkretnym przedziale (np. krotkie repeat_len, gdzie hipoteza przewiduje
+     efekt) czy jest rozlana wszedzie (sugerowaloby artefakt).
+
+METRYKI DO RAPORTOWANIA
+--------------------------------------------------------------------------------
+- GLOWNY WYNIK: wykres dokladnosc-vs-baseline (delta w pp) na osi Y, dystans
+  genomowy Y (mediana Mash train<->held-out) na osi X, trzy punkty A/B/C.
+- Junction accuracy: generalist zero-shot vs baseline vs solo-referencja, per
+  held-out organizm i zagregowane, dla kazdej z grup A/B/C.
+- Krzywa uczenia w funkcji liczby organizmow treningowych (10/30/60/90, grupa B).
+- Rozbicie po repeat_len / cov_ratio_max na held-out.
+- Ten sam format co dotychczasowe tabele w RAPORT.md (procenty z 1 miejscem po
+  przecinku, +/- pp dla delt) - spojnosc z reszta raportu.
+
+RYZYKA I OGRANICZENIA
+--------------------------------------------------------------------------------
+- Mechanizm transferu ("wspolne elementy IS") dziala tylko jesli model
+  faktycznie uczy sie rozpoznawac SEKWENCJE elementow, a nie tylko ich dlugosc/
+  statystyke. CNN na surowym one-hot ma szanse to zlapac, ale to nieprzetestowane.
+- Nawet przy doborze "najdalszych" w grupie A sufit z RAPORT.md moze sie okazac
+  fundamentalny: jesli dwa szczepy maja ten sam IS element ale w innej liczbie
+  kopii lub w innym miejscu, kontynuacja nadal moze byc nieprzewidywalna z
+  samej sekwencji.
+- Koszt obliczeniowy: 100 genomow x (symulacja odczytow + budowa grafu +
+  traversal) + trening na duzo wiekszym polaczonym zbiorze niz dotychczas.
+  Zmierzyc na pilotazu (15-20 genomow) zanim zobowiazemy sie do pelnych 100.
+  Trening samego modelu na duzym zbiorze rowniez wolniejszy - warto sprawdzic
+  wandb log czasu epoki juz na pilotazu.
+- Niedeterminizm traversalu grafu (HashMap, jak w cerevisiae ~1% wariancji w
+  labeled count) - przy 100 genomach bedzie sie kumulowac, ale to szum
+  nieistotny wobec wielkosci zbioru.
+- Dwie nowe zaleznosci (NCBI Datasets CLI, Mash) - do ustalenia z uzytkownikiem
+  przed instalacja, zgodnie z zasada projektu "nie dodawaj zaleznosci bez
+  pytania". Jesli Mash odrzucony, fallback na proxy z taksonomii NCBI (mniej
+  precyzyjny, ale bez nowej zaleznosci).
+- Wybor konkretnych 100 accessionow NCBI nie jest w tym pliku - do zrobienia
+  programowo przez zapytanie do NCBI Datasets w kroku 1 ponizej, nie recznie.
+
+KOLEJNOSC PRAC
+--------------------------------------------------------------------------------
+1. Ustalic dostepnosc/instalacje NCBI Datasets CLI i Mash (albo alternatywy:
+   assembly_summary.txt z NCBI FTP zamiast Datasets CLI; proxy z taksonomii
+   NCBI zamiast Mash).
+2. Napisac skrypt pobierania wsadowego (rozszerzenie download_fasta.sh /
+   prepare_genomes.sh na N genomow z zapytania taksonomicznego zamiast
+   hardkodowanej tablicy 5 URLi) + skrypt liczacy macierz dystansow Mash i
+   wybierajacy "najdalsze" 10 jako held-out.
+3. Pilotaz: pobrac i wygenerowac dane dla 15-20 genomow z Enterobacteriaceae,
+   zmierzyc czas i liczbe labeled junctionow, zweryfikowac ze cala sciezka
+   (download -> dystans -> generowanie CSV -> trening -> ewaluacja) dziala.
+4. Na podstawie pilotazu zdecydowac o skali (czy 90+10 jest wykonalne w
+   rozsadnym czasie, czy trzeba skorygowac coverage/liczbe genomow).
+5. Wybrac docelowe zbiory dla grup A (same-species) i B (same-family), z
+   doborem held-out = najdalsze wg Mash.
+6. Wygenerowac CSV dla wszystkich wybranych genomow (A + B; C to rozszerzenie
+   istniejacych 5 organizmow o kolejne z innych rodzin).
+7. Trening: generalist na pelnym train (90) dla A i B, plus ablacja 10/30/60/90
+   dla B. Rozszerzenie C o dodatkowe organizmy i ponowny przebieg 03/04.
+8. Ewaluacja zero-shot na held-out (10) dla A/B/C, z baseline i solo-referencja.
+9. Analiza wynikow: glowny wykres dystans-vs-delta (A/B/C), repeat_len,
+   cov_ratio_max, krzywa uczenia vs liczba organizmow (B).
+10. Wpis do RAPORT.md z wnioskami (niezaleznie od wyniku - malejaca krzywa i
+    plaska krzywa sa oba wartosciowe wobec dotychczasowej hipotezy o sufit 58%).
