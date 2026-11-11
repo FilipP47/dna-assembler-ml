@@ -18,7 +18,7 @@ Podzial odpowiedzialnosci miedzy jezykami:
 
 - `RAPORT.md` - metody i wyniki dla pojedynczego organizmu (cerevisiae). Wniosek:
   model nie bije baseline max-coverage, sufit ok. 58%.
-- `RAPORT_TRANSFER.md` - transfer miedzy genomami. Trening na wielu szczepach
+- `docs/RAPORT_transfer_A_B.md` - transfer miedzy genomami. Trening na wielu szczepach
   E. coli bije baseline o ok. 15 pp na nowych szczepach tego samego gatunku
   (grupa A); efekt nie rozciaga sie na cala rodzine Enterobacteriaceae (grupa B).
 - `experiments/group_a/README.md` - jak odtworzyc eksperyment grupy A.

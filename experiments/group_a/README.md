@@ -4,7 +4,7 @@ Grupa A z planu eksperymentow A/B/C (gradient wg dystansu genomowego).
 Trening generalisty na ~90 genomach E. coli, ewaluacja zero-shot na 10
 szczepach dobranych jako najdalsze filogenetycznie (nie losowo), zeby
 wykluczyc zapamietywanie prawie-duplikatow. Kontekst i wyniki:
-`RAPORT.md` (sufit ~58% na pojedynczym organizmie) oraz `RAPORT_TRANSFER.md`.
+`RAPORT.md` (sufit ~58% na pojedynczym organizmie) oraz `docs/RAPORT_transfer_A_B.md`.
 
 ## Wymagania wstepne
 
