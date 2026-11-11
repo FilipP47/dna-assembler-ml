@@ -206,7 +206,7 @@ def load_training_csv(
     label_counts = usable_df["ground_truth"].value_counts()
     label_dist = {row["ground_truth"]: row["count"] for row in label_counts.iter_rows(named=True)}
 
-    all_covs = df.select(cov_cols).melt().select("value").drop_nulls()
+    all_covs = df.select(cov_cols).unpivot().select("value").drop_nulls()
     if all_covs.height > 0:
         cov_stats = {
             "min":  float(all_covs["value"].min()),
