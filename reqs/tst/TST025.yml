@@ -7,7 +7,9 @@ links:
 - REQ025: lQl_NUz41s9kKwxtANhZxUgbP_F9Qf_x3IBZamMkccA=
 normative: true
 ref: ''
-references: []
-reviewed: 07f5cZkJGgWOuN5D5VaAEKoOzjwQ8ycbdtlneRKHUVE=
+references:
+- path: src/pipeline/training_data/generator.rs
+  type: file
+reviewed: StiSXL8-sQsZp1P-8T8MKegNe8KEUBalrAKWduG6_74=
 text: |
-  TODO
+  src/pipeline/training_data/generator.rs tests::context_is_last_100_nt_including_junction_node (pelny traverse: kontekst = ostatnie 100 nt konczace sie node_seq, galaz 130 nt obcieta do 100, galaz 40 nt konczy sie na martwym koncu), ::short_context_is_kept_whole, ::branch_stops_at_downstream_junction, ::default_config_matches_requirements.
