@@ -766,7 +766,7 @@ notebooks = [
 requires-dist = [
     { name = "matplotlib", specifier = ">=3.7" },
     { name = "numpy", specifier = ">=1.24" },
-    { name = "polars", specifier = ">=0.20" },
+    { name = "polars", specifier = ">=1.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "scikit-learn", specifier = ">=1.3" },
     { name = "seaborn", specifier = ">=0.13" },
