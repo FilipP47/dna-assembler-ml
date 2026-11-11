@@ -7,7 +7,9 @@ links:
 - REQ002: khRrBr4rwY_w-Ra8ydDXuf0P2LEOtOy8-KpKeWkE5NE=
 normative: true
 ref: ''
-references: []
-reviewed: EjYBTxSpCkNsNL6SIgLlhRKcGvWYgBWoOoGvQu0KJAY=
+references:
+- path: tests/cli_pipeline.rs
+  type: file
+reviewed: 7gl7vK5YpxVKbaq0Prq6_bOX7AATWu3aHhXRJN539V0=
 text: |
-  TODO
+  tests/cli_pipeline.rs::pipeline_writes_contigs_and_training_csv_schema: naglowek CSV to dokladnie 21 kolumn w ustalonej kolejnosci, kazdy wiersz ma 21 pol, context_seq do 100 nt, sekwencja galezi 1-100 nt i NA razem z pokryciem NA, co najmniej 2 galezie z pokryciem >= 2.

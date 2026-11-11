@@ -7,7 +7,9 @@ links:
 - REQ027: jbprDJrbMeWoDvv3xd6cjGNZBD57NU8iJWmK5qCFD-4=
 normative: true
 ref: ''
-references: []
-reviewed: UYpdnHXZQlRnD4Oo_sdqLK8ZMe7X6zZAihq0E1VLnXg=
+references:
+- path: tests/cli_pipeline.rs
+  type: file
+reviewed: 1A508bNTTmPr7p20f7EnMYPiGZ9x3X3ePM7yhg8NW2c=
 text: |
-  TODO
+  tests/cli_pipeline.rs::gen_train_data_fails_without_junctions: losowy genom 2 kb bez powtorzen przy k=21 daje kod wyjscia != 0, a stderr zawiera "No junctions found" i "lowering k".

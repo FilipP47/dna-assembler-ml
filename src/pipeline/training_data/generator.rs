@@ -376,3 +376,198 @@ impl crate::pipeline::analysis::JunctionAnalyzer for TrainingDataGenerator {
         self.stats.total_junctions
     }
 }
+
+#[cfg(test)]
+mod tests {
+    //! Small hand-built graphs for REQ024 (branch coverage filter) and REQ025
+    //! (context and branch windows).
+    use super::*;
+    use crate::infra::io::DnaRead;
+    use crate::pipeline::analysis::JunctionAnalyzer;
+    use rand::{rngs::StdRng, Rng, SeedableRng};
+    use std::collections::HashMap;
+
+    const K: usize = 21;
+
+    /// Random ACGT string; seeded so every run builds the same graph.
+    fn random_seq(rng: &mut StdRng, len: usize) -> String {
+        (0..len)
+            .map(|_| INDEX_TO_BASE[rng.gen_range(0..4)])
+            .collect()
+    }
+
+    /// Random tail of `len` bases whose first base is `first`.
+    fn branch(rng: &mut StdRng, first: char, len: usize) -> String {
+        format!("{first}{}", random_seq(rng, len - 1))
+    }
+
+    /// Build a graph from `(sequence, copies)`; each copy adds 1 to every k-mer's coverage.
+    fn graph_from(reads: &[(String, usize)]) -> DeBruijnGraph {
+        let reads: Vec<DnaRead> = reads
+            .iter()
+            .flat_map(|(seq, copies)| (0..*copies).map(move |_| DnaRead::new("r", seq.clone())))
+            .collect();
+        DeBruijnGraph::build(&reads, K).unwrap()
+    }
+
+    /// Node id of the last (k-1) bases of `seq`.
+    fn node_of(seq: &str) -> NodeId {
+        NodeId::encode(&seq.as_bytes()[seq.len() - (K - 1)..])
+    }
+
+    /// Parse the CSV written by the generator into header-keyed rows.
+    fn read_rows(path: &Path) -> Vec<HashMap<String, String>> {
+        let text = std::fs::read_to_string(path).unwrap();
+        let mut lines = text.lines();
+        let header: Vec<&str> = lines.next().unwrap().split(',').collect();
+        lines
+            .map(|line| {
+                header
+                    .iter()
+                    .zip(line.split(','))
+                    .map(|(h, v)| (h.to_string(), v.to_string()))
+                    .collect()
+            })
+            .collect()
+    }
+
+    /// Record the junction at the end of `prefix` and return the written rows.
+    fn record_at(graph: &DeBruijnGraph, prefix: &str, dir: &Path) -> Vec<HashMap<String, String>> {
+        let path = dir.join("train.csv");
+        let mut gen =
+            TrainingDataGenerator::new(TrainingDataConfig::default(), prefix.into(), &path, graph)
+                .unwrap();
+        let node = node_of(prefix);
+        let n = &graph.nodes[&node];
+        gen.record_junction(graph, &node, prefix, 0, 0, n.out_degree, n.in_degree)
+            .unwrap();
+        gen.finish().unwrap();
+        read_rows(&path)
+    }
+
+    #[test]
+    fn default_config_matches_requirements() {
+        let cfg = TrainingDataConfig::default();
+        assert_eq!(
+            (cfg.context_len, cfg.branch_len, cfg.min_branch_coverage),
+            (100, 100, 2)
+        );
+    }
+
+    #[test]
+    fn branch_below_min_coverage_is_na() {
+        let mut rng = StdRng::seed_from_u64(1);
+        let prefix = random_seq(&mut rng, 60);
+        let graph = graph_from(&[
+            (prefix.clone() + &branch(&mut rng, 'A', 40), 3),
+            (prefix.clone() + &branch(&mut rng, 'C', 40), 2),
+            (prefix.clone() + &branch(&mut rng, 'G', 40), 1),
+        ]);
+        assert_eq!(graph.nodes[&node_of(&prefix)].out_degree, 3);
+        let dir = tempfile::tempdir().unwrap();
+
+        let rows = record_at(&graph, &prefix, dir.path());
+
+        assert_eq!(rows.len(), 1);
+        let row = &rows[0];
+        assert_eq!(row["branch_A_cov"], "3");
+        assert_eq!(row["branch_C_cov"], "2");
+        assert_eq!(row["branch_G_seq"], "NA");
+        assert_eq!(row["branch_G_cov"], "NA");
+        assert_eq!(row["branch_T_seq"], "NA");
+        assert_eq!(row["out_degree"], "3");
+    }
+
+    #[test]
+    fn junction_with_fewer_than_two_covered_branches_is_not_written() {
+        let mut rng = StdRng::seed_from_u64(2);
+        let prefix = random_seq(&mut rng, 60);
+        let graph = graph_from(&[
+            (prefix.clone() + &branch(&mut rng, 'A', 40), 2),
+            (prefix.clone() + &branch(&mut rng, 'T', 40), 1),
+        ]);
+        assert_eq!(graph.nodes[&node_of(&prefix)].out_degree, 2);
+        let dir = tempfile::tempdir().unwrap();
+
+        let rows = record_at(&graph, &prefix, dir.path());
+
+        assert!(rows.is_empty(), "expected header only, got {rows:?}");
+    }
+
+    #[test]
+    fn context_is_last_100_nt_including_junction_node() {
+        let mut rng = StdRng::seed_from_u64(3);
+        let prefix = random_seq(&mut rng, 150);
+        let long_branch = branch(&mut rng, 'A', 130);
+        let short_branch = branch(&mut rng, 'C', 40);
+        let graph = graph_from(&[
+            (prefix.clone() + &long_branch, 2),
+            (prefix.clone() + &short_branch, 2),
+        ]);
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("train.csv");
+        let gen = TrainingDataGenerator::new(
+            TrainingDataConfig::default(),
+            prefix.clone(),
+            &path,
+            &graph,
+        )
+        .unwrap();
+        let mut analyzer: Option<Box<dyn JunctionAnalyzer>> = Some(Box::new(gen));
+
+        // Full traversal, so the context comes from the assembler's contig.
+        graph.traverse(&mut analyzer);
+        drop(analyzer); // flushes the BufWriter
+
+        let rows = read_rows(&path);
+        assert_eq!(rows.len(), 1);
+        let row = &rows[0];
+        assert_eq!(row["context_seq"], prefix[prefix.len() - 100..]);
+        assert!(row["context_seq"].ends_with(&row["node_seq"]));
+        assert_eq!(row["node_seq"], prefix[prefix.len() - (K - 1)..]);
+        // Long branch is cut at branch_len = 100, the short one ends at its dead end.
+        assert_eq!(row["branch_A_seq"], long_branch[..100]);
+        assert_eq!(row["branch_C_seq"], short_branch);
+    }
+
+    #[test]
+    fn short_context_is_kept_whole() {
+        let mut rng = StdRng::seed_from_u64(4);
+        let prefix = random_seq(&mut rng, 60);
+        let graph = graph_from(&[
+            (prefix.clone() + &branch(&mut rng, 'G', 30), 2),
+            (prefix.clone() + &branch(&mut rng, 'T', 30), 2),
+        ]);
+        let dir = tempfile::tempdir().unwrap();
+
+        let rows = record_at(&graph, &prefix, dir.path());
+
+        assert_eq!(rows[0]["context_seq"], prefix);
+    }
+
+    #[test]
+    fn branch_stops_at_downstream_junction() {
+        let mut rng = StdRng::seed_from_u64(5);
+        let prefix = random_seq(&mut rng, 60);
+        let a_branch = branch(&mut rng, 'A', 130);
+        // A second read leaves a_branch after 30 bases, so the node there has out_degree 2.
+        let fork_base = if a_branch.as_bytes()[30] == b'G' {
+            'T'
+        } else {
+            'G'
+        };
+        let fork = format!("{}{}", &a_branch[..30], branch(&mut rng, fork_base, 40));
+        let graph = graph_from(&[
+            (prefix.clone() + &a_branch, 2),
+            (prefix.clone() + &fork, 2),
+            (prefix.clone() + &branch(&mut rng, 'C', 40), 2),
+        ]);
+        let downstream = node_of(&(prefix.clone() + &a_branch[..30]));
+        assert_eq!(graph.nodes[&downstream].out_degree, 2);
+        let dir = tempfile::tempdir().unwrap();
+
+        let rows = record_at(&graph, &prefix, dir.path());
+
+        assert_eq!(rows[0]["branch_A_seq"], a_branch[..30]);
+    }
+}

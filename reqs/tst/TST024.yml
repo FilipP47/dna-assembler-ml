@@ -7,7 +7,9 @@ links:
 - REQ024: AF7JMybzZBybCoAF68Ly0nTZ6ethwDh-sO2jvkh0jeY=
 normative: true
 ref: ''
-references: []
-reviewed: _BnsQvNJY9Dng8eRqDXol6fYo-JSjttccGflCok-h0k=
+references:
+- path: src/pipeline/training_data/generator.rs
+  type: file
+reviewed: D3tGufyw4lUjfC0ggBZvWYrSi4N_JvcHzXyRtI30fN4=
 text: |
-  TODO
+  src/pipeline/training_data/generator.rs tests::branch_below_min_coverage_is_na (galezie o pokryciu 3, 2, 1: ta z 1 ma NA, granica 2 jest przyjmowana), ::junction_with_fewer_than_two_covered_branches_is_not_written, ::default_config_matches_requirements.

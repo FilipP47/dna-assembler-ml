@@ -7,7 +7,9 @@ links:
 - REQ001: RYmxDb-T49bRYXg_1SZPuarf7mz03hme_WrPB-ZuqUw=
 normative: true
 ref: ''
-references: []
-reviewed: NK9-Qprur-oraecA55oSKLBmg-ZgaJSg517UrSmAJjc=
+references:
+- path: tests/cli_pipeline.rs
+  type: file
+reviewed: yaDKHkaIr1-WA9JbuJh0rTpM8uVNM1srcMJxWPubRzw=
 text: |
-  TODO
+  tests/cli_pipeline.rs::pipeline_writes_contigs_and_training_csv_schema (pipeline na syntetycznym genomie 4 kb z powtorzeniem zapisuje niepusty <results-dir>/contigs.fasta z samymi ACGT), ::pipeline_default_k_is_31 (bez --k w CSV jest k=31 i node_seq ma 30 nt).
