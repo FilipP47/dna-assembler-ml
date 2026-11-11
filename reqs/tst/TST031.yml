@@ -4,10 +4,12 @@ header: |
   Hash commitu w logach treningu
 level: 4.7
 links:
-- REQ031: oD_tNSzdqqGC8fhV2tQe5oJZIClo3SFGI0WUeb7ITNs=
+- REQ031: K3ebjsxqlCMQfAskMFtraiF0GF3hcHgw9Ur67F9mjMk=
 normative: true
 ref: ''
-references: []
-reviewed: uKz-8qm1Q24q0EbYWJQXMgRzoJ51Bux_LjIMk_5AI1g=
+references:
+- path: ml/tests/training/test_provenance.py
+  type: file
+reviewed: aMwtjPcbTelWOh_RCTFRJA21rDK3rU_PW7JjR-bwQAk=
 text: |
-  TODO
+  ml/tests/training/test_provenance.py: test_git_info_clean_then_dirty, test_fallback_without_git_uses_env, test_fallback_outside_repo, test_run_config_records_train_args, test_checkpoint_stores_provenance, test_fit_writes_metrics_json_and_keeps_history_csv. Odczyt starego checkpointu: ml/tests/training/test_evaluate.py::test_old_checkpoint_without_provenance_still_loads.

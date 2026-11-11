@@ -2,6 +2,8 @@
 #
 # Build (CPU, default):  docker build -t dna-assembler-ml .
 # Build (GPU wheels):     docker build --build-arg DEVICE=cuda -t dna-assembler-ml:cuda .
+#   Add --build-arg GIT_COMMIT=$(git rev-parse HEAD) so trained checkpoints
+#   record the commit (see ml/training/provenance.py).
 # Run (CPU):   docker run --rm -v "$PWD/work:/work" dna-assembler-ml <cmd>
 # Run (GPU):   docker run --rm --gpus all -v "$PWD/work:/work" dna-assembler-ml:cuda <cmd>
 #              (needs the NVIDIA Container Toolkit on the host; the cu128
@@ -57,6 +59,11 @@ COPY . .
 
 ENV ROOT=/app
 ENV DEVICE=${DEVICE}
+# .git/ is not copied into the image (.dockerignore), so training cannot ask
+# git for the commit; ml/training/provenance.py falls back to GIT_COMMIT.
+# Pass it at build time: --build-arg GIT_COMMIT=$(git rev-parse HEAD)
+ARG GIT_COMMIT=unknown
+ENV GIT_COMMIT=${GIT_COMMIT}
 ENV UV_PROJECT_ENVIRONMENT=/app/ml/.venv
 ENV PYTHONUNBUFFERED=1
 # Without this, `uv run` prefers its own managed CPython over the system
