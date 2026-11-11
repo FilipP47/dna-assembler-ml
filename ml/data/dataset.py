@@ -128,7 +128,8 @@ class JunctionDataset(Dataset):
             df: Polars DataFrame with one row per junction (output of
                 ``load_training_csv``).
             context_len: Maximum context sequence length in base pairs; longer
-                sequences are truncated during encoding.
+                sequences keep their last ``context_len`` bases (the ones next
+                to the junction).
             branch_len: Maximum branch sequence length in base pairs.
             augment: When ``True``, each correct/wrong pair is extended with
                 three additional augmented variants (swapped positions and
@@ -190,6 +191,10 @@ class JunctionDataset(Dataset):
                 continue
 
             context_seq = str(row.get("context_seq") or "")
+            # Keep the bases right before the junction (the end of context_seq).
+            # Cut here, before the reverse complement, so RC variants keep the
+            # same bases; one_hot then only pads.
+            context_seq = context_seq[-self.context_len:]
             junction_id = int(row.get("junction_id") or 0)
 
             correct_seq = str(row.get(f"branch_{gt_base}_seq") or "")

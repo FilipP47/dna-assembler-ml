@@ -9,7 +9,7 @@ import polars as pl
 import pytest
 import torch
 
-from data.dataset import JunctionDataset, one_hot
+from data.dataset import JunctionDataset, one_hot, reverse_complement
 from data.loader import REQUIRED_COLS, load_training_csv, split_dataset
 from tests.helpers import make_junction_df
 
@@ -91,21 +91,32 @@ def test_only_labeled_drops_ambiguous_and_na(tmp_path: Path) -> None:
 def test_no_upper_length_limit_and_truncation_at_encoding(tmp_path: Path) -> None:
     """Long sequences pass the loader; JunctionDataset cuts them to context_len/branch_len."""
     rows = _base_rows(1)
-    long_ctx = "ACGT" * 75  # 300 nt
+    near_junction = "ACGTTGCAAG" * 5  # last 50 nt of the context
+    long_ctx = "C" * 250 + near_junction
     rows[0]["context_seq"] = long_ctx
     gt = rows[0]["ground_truth"]
-    rows[0][f"branch_{gt}_seq"] = "T" * 250
+    long_branch = "G" * 40 + "T" * 210
+    rows[0][f"branch_{gt}_seq"] = long_branch
     path = _write_csv(tmp_path / "t.csv", rows, ALL_COLS)
 
     df, _ = load_training_csv(path)
     assert df["context_seq"][0] == long_ctx
 
-    item = JunctionDataset(df, context_len=50, branch_len=40, use_cov_feat=False)[0]
+    dataset = JunctionDataset(
+        df, context_len=50, branch_len=40, augment=True, use_cov_feat=False
+    )
+    item = dataset[0]
     assert item["context"].shape == (4, 50)
     assert item["branch_a"].shape == (4, 40)
     assert item["branch_b"].shape == (4, 40)
-    # Truncation keeps the first context_len bases of the stored sequence.
-    assert torch.equal(item["context"], one_hot(long_ctx[:50], 50))
+    # Context keeps its last context_len bases (next to the junction).
+    assert torch.equal(item["context"], one_hot(near_junction, 50))
+    # The reverse-complement variant is built from the same bases.
+    rc_contexts = {s.context_seq for s in dataset.samples[2:]}
+    assert rc_contexts == {reverse_complement(near_junction)}
+    # Branches still keep their start (the bases right after the junction).
+    correct = item["branch_a"] if dataset.samples[0].label == 0 else item["branch_b"]
+    assert torch.equal(correct, one_hot(long_branch[:40], 40))
 
 
 # --- REQ009: train/val split by junction ------------------------------------
