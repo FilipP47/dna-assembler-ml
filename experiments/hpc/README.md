@@ -191,8 +191,10 @@ referencja w `experiments/hpc/results/` zostaje nietknieta.
 konczy sie kodem 1, gdy srednia wazona odbiega od referencji o wiecej niz
 1 pp (`--tolerance_pp`).
 
-Ostatnie odtworzenie (joby 94577 i 94594, torch 2.11.0+cu128 z `uv.lock`)
-dalo srednia wazona 71,57%, czyli -0,41 pp wzgledem 71,98%. Referencja byla
+Ostatnie odtworzenie (trening: job 94577, ewaluacja: job 94594, torch
+2.11.0+cu128 z `uv.lock`) dalo srednia wazona 71,57% (-0,41 pp wzgledem
+71,98%) i zwykla srednia 72,24% (-0,36 pp wzgledem 72,59%), obie w granicach
++/- 1 pp. Referencja byla
 liczona przed migracja na `uv` (patrz sekcja wyzej), wiec roznica obejmuje
 tez inne wersje pakietow i sprzet. Dla porownania, powtorzenia z seedami
 123 i 7 (`results/eval_repeats/`) daja 71,16% i 71,99%.
