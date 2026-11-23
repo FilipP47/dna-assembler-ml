@@ -247,11 +247,43 @@ najdalszy od skrzyzowania. Poprawiono w `JunctionDataset._build_pairs`
 tym dotkniete.
 
 ### 7.8 Odtworzenie wynikow w czystym klonie repozytorium
-Wariant A farthest (seed 42) odtworzono na swiezym klonie (joby 94577
-i 94594, torch 2.11.0+cu128): walidacyjna junction accuracy 73,13% -> 72,71%,
-zero-shot srednia wazona 71,98% -> 71,57% (srednia prosta 72,59% -> 72,24%),
-te same 6345 junctionow. Roznica miesci sie w odchyleniu miedzy seedami.
-Odtworzono jeden wariant i jeden seed.
+Wariant A farthest (seed 42) odtworzono trzy razy na swiezym klonie, z
+zaleznosciami z `uv.lock`. Wszystkie wyniki zero-shot dotycza tych samych 10
+genomow testowych i 6345 junctionow. Srednia wazona to `junction_accuracy`
+wazona `n_junctions`, roznica jest liczona dla sredniej wazonej wzgledem
+oryginalu.
+
+| Przebieg | Joby | GPU | Val junction acc (epoka) | Zero-shot wazona | Zero-shot prosta | Roznica |
+|---|---|---|---|---|---|---|
+| Oryginal | 81587 / 81607 | - | 73,13% (48) | 71,98% | 72,59% | - |
+| Odtworzenie 1 | 94577 / 94594 | RTX 4090 (glasser) | 72,71% (46) | 71,57% | 72,24% | -0,41 pp |
+| Odtworzenie 2 | 99133 / 107989 | RTX 4090 (glasser) | 72,58% (50) | 71,58% | 72,25% | -0,39 pp |
+| Odtworzenie 3 | 99076 | RTX PRO 6000 (h32) | 74,21% (50) | 73,27% | 73,76% | +1,29 pp |
+
+Odtworzenie 2 uruchomiono z commita fc41b9a (`git_dirty=False`, trening
+1:04:21), a ewaluacje zero-shot policzono na CPU (job 107989). Epoki 1-5 sa
+identyczne z jobem 94577 co do wypisanych cyfr. Odtworzenie 3 uzywalo tego
+samego kodu na innym modelu GPU (114 s na epoke, trening 1:35:17).
+
+Na tym samym modelu GPU wynik jest powtarzalny. Oba przebiegi na RTX 4090
+odbiegaja od oryginalu o mniej niz 0,5 pp, a miedzy soba o 0,01 pp. Na RTX PRO
+6000 srednia wazona jest wyzsza o 1,29 pp, wiec `compare_reproduction.py` z
+domyslna tolerancja +/- 1 pp zwraca FAIL (tolerancja jest dwustronna). Na
+poziomie pojedynczych genomow rozbieznosci dochodza do 3,6 pp (GCF_017639185.1:
+71,39% -> 67,82%), wiec porownywac nalezy srednia, a nie wyniki per genom.
+
+Przyczyna jest sprzet w polaczeniu z limitem 50 epok, a nie kod. Limit wiaze:
+najlepsza epoka to 50 na h32 i 46-50 na glasser, wiec model wciaz sie poprawia,
+gdy trening sie konczy. Inny model GPU najpewniej daje inna kolejnosc i zaokraglenia
+operacji zmiennoprzecinkowych, co przesuwa moment wyjscia z plateau, a przy
+ucietym treningu przeklada sie to bezposrednio na wynik koncowy.
+
+Osobnym zrodlem zmiennosci jest generator danych. Kolejnosc przechodzenia grafu
+zalezy od `HashMap` z losowym `RandomState`, wiec liczba etykietowanych
+junctionow rozni sie o okolo 1% miedzy generacjami tego samego genomu. Porownanie
+odtworzen ma sens tylko na tych samych plikach CSV; zgodna liczba 6345
+junctionow testowych we wszystkich przebiegach to potwierdza dla zbioru
+testowego.
 
 ---
 

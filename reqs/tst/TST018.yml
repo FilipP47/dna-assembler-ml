@@ -4,12 +4,12 @@ header: |
   Odtworzenie A farthest (reczny)
 level: 4.6
 links:
-- REQ018: 8pil1toppUq-U46BHC0dUZwmArW2E4DURZJNTN-NspY=
+- REQ018: PbYKQFR_HwLi6XKYvjQwKr4kOk0Pmo12UKA1wvCFGu0=
 normative: true
 ref: ''
 references:
 - path: experiments/hpc/compare_reproduction.py
   type: file
-reviewed: LvGraa5uO2irFMVmFL-Pvgu9Q2NmySNM0xN2GNupj7U=
+reviewed: 6yIHQFevEuiZOwLgrbz2GUTooQFk0a2VXk-rL9yQugg=
 text: |
-  Test reczny na klastrze wedlug experiments/hpc/README.md; wynik ocenia experiments/hpc/compare_reproduction.py --variant group_a_farthest (kod wyjscia 0 w granicach +/- 1 pp sredniej wazonej).
+  Test reczny na klastrze wedlug experiments/hpc/README.md, na GPU RTX 4090; wynik ocenia experiments/hpc/compare_reproduction.py --variant group_a_farthest (kod wyjscia 0 w granicach --tolerance 1 pp sredniej wazonej). Przebieg na innym modelu GPU nie jest rozstrzygajacy: FAIL tam nie oznacza regresji kodu (RTX PRO 6000 dal +1,29 pp).

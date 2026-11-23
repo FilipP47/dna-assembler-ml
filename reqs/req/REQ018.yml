@@ -10,6 +10,6 @@ ref: ''
 references:
 - path: experiments/hpc/README.md
   type: file
-reviewed: yGfC-VfPE0XCasAU2xihatlDKak7PdgBqQcNfYI5dKo=
+reviewed: fVHsos1UXuSIANAYKcgmsZILVY1HMtFPtVvK5c4FOws=
 text: |
-  Ponowny trening A farthest z seedem 42 w srodowisku z uv.lock daje srednia junction_accuracy wazona n_junctions na 10 genomach testowych w przedziale [70,98%; 72,98%], czyli 71,98% +/- 1 pp. Kryterium jest srednia wazona; zwykla srednia referencji to 72,59%. Procedura: experiments/hpc/README.md, sekcja "Odtworzenie wyniku A farthest (seed 42)". Ostatnie odtworzenie (joby 94577 i 94594): srednia wazona 71,57%, zwykla 72,24%.
+  Ponowny trening A farthest z seedem 42 w srodowisku z uv.lock, na GPU tej samej klasy co referencja (RTX 4090), daje srednia junction_accuracy wazona n_junctions na 10 genomach testowych w przedziale [70,98%; 72,98%], czyli 71,98% +/- 1 pp. Kryterium jest srednia wazona; zwykla srednia referencji to 72,59%. Procedura: experiments/hpc/README.md, sekcja "Odtworzenie wyniku A farthest (seed 42)". Odtworzenia na RTX 4090: joby 94577/94594 (71,57%) i 99133/107989 (71,58%). Dla innego modelu GPU kryterium nie jest gwarantowane: na RTX PRO 6000 (job 99076) uzyskano 73,27%, czyli +1,29 pp, bo limit 50 epok wiaze i wynik zalezy od momentu wyjscia z plateau. Wyniki per genom moga roznic sie o kilka pp i nie sa objete kryterium.

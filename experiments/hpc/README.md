@@ -189,12 +189,17 @@ zapisuje `results/eval_group_a_farthest/`. Oba katalogi sa poza gitem, wiec
 referencja w `experiments/hpc/results/` zostaje nietknieta.
 `compare_reproduction.py` wypisuje obie srednie i roznice per organizm, a
 konczy sie kodem 1, gdy srednia wazona odbiega od referencji o wiecej niz
-1 pp (`--tolerance_pp`).
+1 pp (`--tolerance`, dawniej `--tolerance_pp`). Tolerancja dotyczy GPU tej
+samej klasy co referencja (RTX 4090). Na innym modelu GPU wynik moze z niej
+wyjsc bez zmiany kodu, bo trening konczy sie na limicie 50 epok, gdy model
+wciaz sie poprawia.
 
-Ostatnie odtworzenie (trening: job 94577, ewaluacja: job 94594, torch
-2.11.0+cu128 z `uv.lock`) dalo srednia wazona 71,57% (-0,41 pp wzgledem
-71,98%) i zwykla srednia 72,24% (-0,36 pp wzgledem 72,59%), obie w granicach
-+/- 1 pp. Referencja byla
+Odtworzenia na RTX 4090 (glasser, torch 2.11.0+cu128 z `uv.lock`): joby
+94577/94594 daly srednia wazona 71,57% (-0,41 pp wzgledem 71,98%) i zwykla
+72,24%, a joby 99133/107989 (commit fc41b9a) 71,58% (-0,39 pp) i 72,25%.
+Ten sam kod na RTX PRO 6000 (h32, job 99076) dal 73,27% i 73,76%, czyli
++1,29 pp, wiec skrypt zwraca tam FAIL. Szczegoly w
+`docs/RAPORT_transfer_A_B.md`, sekcja 7.8. Referencja byla
 liczona przed migracja na `uv` (patrz sekcja wyzej), wiec roznica obejmuje
 tez inne wersje pakietow i sprzet. Dla porownania, powtorzenia z seedami
 123 i 7 (`results/eval_repeats/`) daja 71,16% i 71,99%.
