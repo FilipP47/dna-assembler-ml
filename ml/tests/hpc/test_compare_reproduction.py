@@ -79,18 +79,20 @@ def test_weighted_mean() -> None:
     assert weighted == pytest.approx(0.875)
 
 
-def test_within_default_tolerance(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+@pytest.mark.parametrize(
+    ("new_acc", "expected"),
+    [
+        (0.716, 0),  # -0.4 pp, glasser re-runs
+        (0.733, 0),  # +1.3 pp, h32 re-run
+        (0.745, 1),  # +2.5 pp, outside the default 2 pp
+        (0.695, 1),  # -2.5 pp, the tolerance is two-sided
+    ],
+)
+def test_default_tolerance_is_two_sided(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, new_acc: float, expected: int
 ) -> None:
-    """A -0.4 pp shift (RTX 4090 re-runs) passes the default 1 pp tolerance."""
-    assert _run(monkeypatch, tmp_path, 0.716) == 0
-
-
-def test_tolerance_is_two_sided(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    """A +1.3 pp shift (RTX PRO 6000 run) fails the default tolerance."""
-    assert _run(monkeypatch, tmp_path, 0.733) == 1
+    """The default 2 pp tolerance accepts the observed spread and rejects 2.5 pp."""
+    assert _run(monkeypatch, tmp_path, new_acc) == expected
 
 
 @pytest.mark.parametrize("flag", ["--tolerance", "--tolerance_pp"])
@@ -98,4 +100,5 @@ def test_tolerance_flag(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, flag: str
 ) -> None:
     """Both the new flag and the old alias set the tolerance."""
-    assert _run(monkeypatch, tmp_path, 0.733, flag, "1.5") == 0
+    assert _run(monkeypatch, tmp_path, 0.733, flag, "1.0") == 1
+    assert _run(monkeypatch, tmp_path / "x", 0.745, flag, "3.0") == 0

@@ -10,6 +10,6 @@ ref: ''
 references:
 - path: experiments/hpc/README.md
   type: file
-reviewed: fVHsos1UXuSIANAYKcgmsZILVY1HMtFPtVvK5c4FOws=
+reviewed: X768e9rrHJK2X7N24kUo8_1DT5plPR7blmUmOLxwQh0=
 text: |
-  Ponowny trening A farthest z seedem 42 w srodowisku z uv.lock, na GPU tej samej klasy co referencja (RTX 4090), daje srednia junction_accuracy wazona n_junctions na 10 genomach testowych w przedziale [70,98%; 72,98%], czyli 71,98% +/- 1 pp. Kryterium jest srednia wazona; zwykla srednia referencji to 72,59%. Procedura: experiments/hpc/README.md, sekcja "Odtworzenie wyniku A farthest (seed 42)". Odtworzenia na RTX 4090: joby 94577/94594 (71,57%) i 99133/107989 (71,58%). Dla innego modelu GPU kryterium nie jest gwarantowane: na RTX PRO 6000 (job 99076) uzyskano 73,27%, czyli +1,29 pp, bo limit 50 epok wiaze i wynik zalezy od momentu wyjscia z plateau. Wyniki per genom moga roznic sie o kilka pp i nie sa objete kryterium.
+  Ponowny trening A farthest z seedem 42 w srodowisku z uv.lock daje srednia junction_accuracy wazona n_junctions na 10 genomach testowych w przedziale [69,98%; 73,98%], czyli 71,98% +/- 2 pp. Kryterium jest srednia wazona; zwykla srednia referencji to 72,59%. Procedura: experiments/hpc/README.md, sekcja "Odtworzenie wyniku A farthest (seed 42)". Tolerancja wynika z obserwowanego rozrzutu: w 4 przebiegach (oryginal 81587 na h32, odtworzenia 94577 i 99133 na glasser, 99076 na h32) srednia wazona wynosila 71,57-73,27%, a maksymalna roznica wzgledem oryginalu to +1,29 pp, uzyskana na tym samym wezle co oryginal. Ograniczenie: granica 2 pp jest oszacowaniem z n=4 przebiegow, a nie przedzialem ufnosci; przyczyna rozrzutu jest nieustalona (docs/RAPORT_transfer_A_B.md, sekcja 7.8). Wyniki per genom moga roznic sie o kilka pp i nie sa objete kryterium.

@@ -189,19 +189,21 @@ zapisuje `results/eval_group_a_farthest/`. Oba katalogi sa poza gitem, wiec
 referencja w `experiments/hpc/results/` zostaje nietknieta.
 `compare_reproduction.py` wypisuje obie srednie i roznice per organizm, a
 konczy sie kodem 1, gdy srednia wazona odbiega od referencji o wiecej niz
-1 pp (`--tolerance`, dawniej `--tolerance_pp`). Tolerancja dotyczy GPU tej
-samej klasy co referencja (RTX 4090). Na innym modelu GPU wynik moze z niej
-wyjsc bez zmiany kodu, bo trening konczy sie na limicie 50 epok, gdy model
-wciaz sie poprawia.
+2 pp (`--tolerance`, dawniej `--tolerance_pp`).
 
-Odtworzenia na RTX 4090 (glasser, torch 2.11.0+cu128 z `uv.lock`): joby
-94577/94594 daly srednia wazona 71,57% (-0,41 pp wzgledem 71,98%) i zwykla
-72,24%, a joby 99133/107989 (commit fc41b9a) 71,58% (-0,39 pp) i 72,25%.
-Ten sam kod na RTX PRO 6000 (h32, job 99076) dal 73,27% i 73,76%, czyli
-+1,29 pp, wiec skrypt zwraca tam FAIL. Szczegoly w
+Oryginalny trening (job 81587) szedl na h32 (RTX PRO 6000), a ewaluacja
+zero-shot (job 81607) na glasser (RTX 4090). Odtworzenia na glasser (torch
+2.11.0+cu128 z `uv.lock`): joby 94577/94594 daly srednia wazona 71,57%
+(-0,41 pp wzgledem 71,98%) i zwykla 72,24%, a joby 99133/107989 (commit
+fc41b9a, ewaluacja na CPU) 71,58% (-0,39 pp) i 72,25%. Ten sam kod na h32
+(job 99076) dal 73,27% i 73,76%, czyli +1,29 pp, mimo ze oryginal trenowal na
+tym samym wezle. Dwa przebiegi na glasser sa praktycznie identyczne, ale
+przyczyna roznicy wzgledem oryginalu na h32 jest nieustalona (zmiany kodu,
+niedeterminizm GPU, wiazacy limit 50 epok). Tolerancja 2 pp wynika z
+obserwowanego maksimum 1,29 pp przy n=4 przebiegach. Szczegoly i hipotezy w
 `docs/RAPORT_transfer_A_B.md`, sekcja 7.8. Referencja byla
 liczona przed migracja na `uv` (patrz sekcja wyzej), wiec roznica obejmuje
-tez inne wersje pakietow i sprzet. Dla porownania, powtorzenia z seedami
+tez inne wersje pakietow. Dla porownania, powtorzenia z seedami
 123 i 7 (`results/eval_repeats/`) daja 71,16% i 71,99%.
 
 ## Test dymny

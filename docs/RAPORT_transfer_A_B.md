@@ -251,32 +251,49 @@ Wariant A farthest (seed 42) odtworzono trzy razy na swiezym klonie, z
 zaleznosciami z `uv.lock`. Wszystkie wyniki zero-shot dotycza tych samych 10
 genomow testowych i 6345 junctionow. Srednia wazona to `junction_accuracy`
 wazona `n_junctions`, roznica jest liczona dla sredniej wazonej wzgledem
-oryginalu.
+oryginalu. Wezel h32 ma GPU RTX PRO 6000, glasser RTX 4090.
 
-| Przebieg | Joby | GPU | Val junction acc (epoka) | Zero-shot wazona | Zero-shot prosta | Roznica |
+| Przebieg | Joby | Trening / ewaluacja | Val junction acc (epoka) | Zero-shot wazona | Zero-shot prosta | Roznica |
 |---|---|---|---|---|---|---|
-| Oryginal | 81587 / 81607 | - | 73,13% (48) | 71,98% | 72,59% | - |
-| Odtworzenie 1 | 94577 / 94594 | RTX 4090 (glasser) | 72,71% (46) | 71,57% | 72,24% | -0,41 pp |
-| Odtworzenie 2 | 99133 / 107989 | RTX 4090 (glasser) | 72,58% (50) | 71,58% | 72,25% | -0,39 pp |
-| Odtworzenie 3 | 99076 | RTX PRO 6000 (h32) | 74,21% (50) | 73,27% | 73,76% | +1,29 pp |
+| Oryginal | 81587 / 81607 | h32 / glasser | 73,13% (48) | 71,98% | 72,59% | - |
+| Odtworzenie 1 | 94577 / 94594 | glasser / glasser | 72,71% (46) | 71,57% | 72,24% | -0,41 pp |
+| Odtworzenie 2 | 99133 / 107989 | glasser / CPU | 72,58% (50) | 71,58% | 72,25% | -0,39 pp |
+| Odtworzenie 3 | 99076 | h32 / h32 | 74,21% (50) | 73,27% | 73,76% | +1,29 pp |
 
 Odtworzenie 2 uruchomiono z commita fc41b9a (`git_dirty=False`, trening
-1:04:21), a ewaluacje zero-shot policzono na CPU (job 107989). Epoki 1-5 sa
-identyczne z jobem 94577 co do wypisanych cyfr. Odtworzenie 3 uzywalo tego
-samego kodu na innym modelu GPU (114 s na epoke, trening 1:35:17).
+1:04:21). Ewaluacja na CPU i na GPU rozni sie o 0,01 pp, wiec nie wplywa na
+porownanie. Odtworzenie 3 uzywalo tego samego kodu na h32 (114 s na epoke,
+trening 1:35:17); oryginalny trening na h32 trwal 1:35:51.
 
-Na tym samym modelu GPU wynik jest powtarzalny. Oba przebiegi na RTX 4090
-odbiegaja od oryginalu o mniej niz 0,5 pp, a miedzy soba o 0,01 pp. Na RTX PRO
-6000 srednia wazona jest wyzsza o 1,29 pp, wiec `compare_reproduction.py` z
-domyslna tolerancja +/- 1 pp zwraca FAIL (tolerancja jest dwustronna). Na
-poziomie pojedynczych genomow rozbieznosci dochodza do 3,6 pp (GCF_017639185.1:
+W czterech przebiegach zero-shot srednia wazona miesci sie w 71,57-73,27%
+(rozrzut 1,7 pp), a walidacyjna junction accuracy w 72,58-74,21%. Na poziomie
+pojedynczych genomow rozbieznosci dochodza do 3,6 pp (GCF_017639185.1:
 71,39% -> 67,82%), wiec porownywac nalezy srednia, a nie wyniki per genom.
 
-Przyczyna jest sprzet w polaczeniu z limitem 50 epok, a nie kod. Limit wiaze:
-najlepsza epoka to 50 na h32 i 46-50 na glasser, wiec model wciaz sie poprawia,
-gdy trening sie konczy. Inny model GPU najpewniej daje inna kolejnosc i zaokraglenia
-operacji zmiennoprzecinkowych, co przesuwa moment wyjscia z plateau, a przy
-ucietym treningu przeklada sie to bezposrednio na wynik koncowy.
+Dwa przebiegi na glasser z tym samym kodem sa praktycznie identyczne: epoki
+1-5 zgadzaja sie co do wypisanych cyfr, a zero-shot rozni sie o 0,01 pp.
+Trening na jednym wezle ze stalym kodem jest wiec w praktyce deterministyczny.
+Nie oznacza to jednak, ze roznice wynikaja ze sprzetu. Oryginal i odtworzenie
+3 trenowaly na tym samym h32, a roznia sie o 1,29 pp.
+
+Przyczyna roznicy miedzy oryginalem a odtworzeniem na h32 jest nieustalona.
+Hipotezy do sprawdzenia:
+
+- zmiany kodu miedzy wrzesniem (oryginal) a commitem fc41b9a,
+- niedeterminizm obliczen na GPU, ktory na h32 moze sie ujawniac mimo
+  powtarzalnosci na glasser,
+- moment wyjscia z plateau przy wiazacym limicie 50 epok (najlepsza epoka to
+  46-50 we wszystkich przebiegach), ktory wzmacnia kazda z powyzszych drobnych
+  roznic.
+
+Rozstrzygajacym eksperymentem jest powtorzenie joba 99076 na h32 z tym samym
+commitem. Zgodny wynik wskaze na zmiany kodu, rozny na niedeterminizm GPU.
+
+Kryterium REQ018 (+/- 2 pp sredniej wazonej) oparto na tym rozrzucie:
+dotychczasowe +/- 1 pp nie przechodzi nawet na tym samym wezle (h32: +1,29 pp).
+Granica 2 pp jest oszacowaniem z obserwowanego maksimum 1,29 pp przy n=4
+przebiegach, a nie przedzialem ufnosci, i moze wymagac rewizji po kolejnych
+powtorzeniach.
 
 Osobnym zrodlem zmiennosci jest generator danych. Kolejnosc przechodzenia grafu
 zalezy od `HashMap` z losowym `RandomState`, wiec liczba etykietowanych

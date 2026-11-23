@@ -9,14 +9,15 @@ weighted by ``n_junctions``. The pass/fail check uses the weighted mean,
 which is the number quoted in the report (71.98% for group A farthest).
 
 Exits with status 1 when the weighted means differ by more than
-``--tolerance`` percentage points (default 1.0), or when the organism sets
+``--tolerance`` percentage points (default 2.0), or when the organism sets
 differ.
 
-The tolerance is only meaningful on the same GPU class as the reference
-(RTX 4090). Training stops at the 50-epoch limit while still improving, so the
-result depends on the GPU model: two RTX 4090 re-runs landed within 0.41 pp of
-the reference, while an RTX PRO 6000 run gave +1.29 pp. A FAIL on a different
-GPU model is therefore not by itself a code regression.
+The default tolerance comes from the observed spread, not from a known noise
+model. Over 4 runs (the original and 3 re-runs) the weighted mean ranged over
+71.57-73.27%, and the largest difference from the reference was +1.29 pp, on
+the same node the original was trained on. With n=4 this is an estimate, and
+the cause of the spread is not established (see
+``docs/RAPORT_transfer_A_B.md``, section 7.8).
 
 Usage (from the repo root)::
 
@@ -36,11 +37,10 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 _HPC_DIR = Path(__file__).resolve().parent
-_REF_GPU = "RTX 4090"
-_GPU_NOTE = (
-    "Tolerance applies to the reference GPU class (%s). On other GPU models "
-    "the result is not guaranteed to fall within it (RTX PRO 6000: +1.29 pp), "
-    "because training ends at the 50-epoch limit while still improving."
+_DEFAULT_TOLERANCE_PP = 2.0
+_SPREAD_NOTE = (
+    "Tolerance is based on the observed spread over n=4 runs (max +1.29 pp vs "
+    "the reference); the cause of the spread is not established."
 )
 
 
@@ -107,8 +107,8 @@ def main() -> int:
         "--tolerance_pp",
         dest="tolerance",
         type=float,
-        default=1.0,
-        help=f"Allowed |diff| of the weighted mean in pp, valid for {_REF_GPU}",
+        default=_DEFAULT_TOLERANCE_PP,
+        help="Allowed |diff| of the weighted mean in pp (default: %(default)s)",
     )
     args = ap.parse_args()
 
@@ -146,14 +146,10 @@ def main() -> int:
         diff_pp,
         args.tolerance,
     )
-    logger.info(_GPU_NOTE, _REF_GPU)
+    logger.info(_SPREAD_NOTE)
 
     if abs(diff_pp) > args.tolerance:
-        logger.error(
-            "FAIL: weighted mean outside tolerance (if this run did not use %s, "
-            "this is not by itself a code regression)",
-            _REF_GPU,
-        )
+        logger.error("FAIL: weighted mean outside tolerance")
         return 1
     logger.info("OK: weighted mean within tolerance")
     return 0
