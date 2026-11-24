@@ -94,6 +94,10 @@ def load_training_csv(
     is given, all ``*.csv`` files inside are concatenated and ``junction_id`` values
     are offset per file so IDs remain globally unique across genomes.
 
+    The returned frame has an extra ``source_file`` column with the name of
+    the CSV each row came from (one file per genome in the group A/B data);
+    ``--split_by genome`` groups on it.
+
     Bioinformatics null markers (``NA``, ``NaN``, empty strings) are mapped to
     native Polars nulls.  Numeric columns are cast with ``strict=False`` so
     malformed values become null rather than raising an error.
@@ -138,7 +142,9 @@ def load_training_csv(
         for i, f in enumerate(csv_files):
             part = _read_raw_csv(f)
             # Offset junction_id per file so IDs stay unique across genomes.
-            part = part.with_columns(pl.lit(i).alias("_source_file_idx"))
+            part = part.with_columns(
+                pl.lit(i).alias("_source_file_idx"), pl.lit(f.name).alias("source_file")
+            )
             parts.append(part)
             logger.info("  [%d/%d] %s - %d rows", i + 1, len(csv_files), f.name, part.height)
         df = pl.concat(parts, how="diagonal_relaxed")
@@ -147,7 +153,9 @@ def load_training_csv(
             raise FileNotFoundError(f"Training CSV not found: {csv_path}")
         logger.info("Loading training data from %s", csv_path)
         df = _read_raw_csv(csv_path)
-        df = df.with_columns(pl.lit(0).alias("_source_file_idx"))
+        df = df.with_columns(
+            pl.lit(0).alias("_source_file_idx"), pl.lit(csv_path.name).alias("source_file")
+        )
 
     missing = [c for c in REQUIRED_COLS if c not in df.columns]
     if missing:
