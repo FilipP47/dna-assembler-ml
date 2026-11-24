@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Harmonogram LR i liczba epok
+level: 2.11
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/training/trainer.py
+  type: file
+- path: ml/main.py
+  type: file
+reviewed: iAfNKrPLAy9DFeShxuXY4PqYEBOMyNXlWMiWA4o18DE=
+text: |
+  main.py train przyjmuje --lr_schedule {constant,cosine,plateau} (domyslnie plateau) i --warmup_epochs (int, domyslnie 0); --epochs dziala do co najmniej 200 (domyslnie nadal 50, bez gornego limitu). plateau to ReduceLROnPlateau na val junction_accuracy (patience 5, factor 0,5), cosine to lr * 0,5 * (1 + cos(pi * t / T)) z T = epochs - warmup_epochs, constant to stale --lr. Warm-up podnosi lr liniowo (lr * epoka / warmup_epochs); w jego trakcie ReduceLROnPlateau nie jest krokowany. Przy wartosciach domyslnych trening daje te same wagi i te same lr w kazdej epoce co kod sprzed zmiany. --weight_decay (1e-4) i --dropout (0,3) istnialy wczesniej i nie zmieniaja wartosci domyslnych.

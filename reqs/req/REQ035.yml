@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Predykcje per skrzyzowanie z ewaluacji
+level: 3.5
+links:
+- CAT003: mepXMUSbCSB4apIBByjRIxridj2JMJQ8CcA3IDn0Y4w=
+normative: true
+ref: ''
+references:
+- path: ml/training/predictions.py
+  type: file
+- path: ml/training/evaluate.py
+  type: file
+reviewed: x4hbBmZTMcShQYzrgRk8QSTN7aI6I4Ygqwclgrcv72Y=
+text: |
+  main.py evaluate zapisuje predykcje per skrzyzowanie do --output_predictions, a domyslnie, gdy podano --output_json, do <output_json bez .json>_predictions.csv. Format JSON z REQ010 sie nie zmienia. Plik obejmuje wszystkie skrzyzowania po filtrach dlugosci, takze Ambiguous i NotFound, z kolumnami organism, junction_id, label_type (Known/Ambiguous/NotFound), ground_truth, n_branches, out_degree, repeat_len, k, cov_ratio_max, total_reads, cov_tie, predicted_branch, correct, baseline_branch, baseline_correct oraz score_A..score_T. correct ma te sama definicje co junction_accuracy (wszystkie pary poprawne), wiec srednia correct po Known rowna sie junction_accuracy z JSON; dla Ambiguous i NotFound correct i baseline_correct sa puste. Baseline to max-coverage z remisami w kolejnosci A, C, G, T, jak w baseline_max_coverage.py.

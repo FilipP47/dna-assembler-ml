@@ -1,0 +1,21 @@
+active: true
+derived: false
+header: |
+  Flagi architektury MV1
+level: 2.12
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/models/mv1.py
+  type: file
+- path: ml/training/train.py
+  type: file
+- path: ml/training/evaluate.py
+  type: file
+- path: ml/training/export.py
+  type: file
+reviewed: np90HZZzggdyruczKXT7Ec_wQnq6-RM4XrJ8k73-pDI=
+text: |
+  main.py train przyjmuje --width_mult (float, domyslnie 1,0; mnozy szerokosci ukrytych konwolucji 32 i 64, rozmiar embeddingu pozostaje --embed_dim), --n_blocks (int, domyslnie 3; pierwszy blok ma kernel 5, kolejne 3, ostatni wyprowadza embed_dim kanalow), --residual (domyslnie wylaczone; polaczenie skrotowe w kazdym bloku, konwolucja 1x1 gdy szerokosci sie roznia) i --batchnorm (domyslnie wylaczone; BatchNorm1d po kazdej ukrytej warstwie Linear scorera; enkoder zawsze ma BatchNorm). Przy wartosciach domyslnych model ma te same nazwy parametrow, kolejnosc inicjalizacji i wyjscia co MV1 sprzed zmiany (49 473 parametrow z --no_cov), a stare checkpointy wczytuja sie bez zmian. Ustawienia trafiaja do model_hparams w checkpoincie, z ktorego evaluate i export odtwarzaja architekture; brakujace klucze oznaczaja oryginalne MV1.

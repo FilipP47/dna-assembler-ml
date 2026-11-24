@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Analiza bledow predykcji zero-shot
+level: 3.6
+links:
+- CAT003: mepXMUSbCSB4apIBByjRIxridj2JMJQ8CcA3IDn0Y4w=
+normative: true
+ref: ''
+references:
+- path: ml/analysis/error_analysis.py
+  type: file
+reviewed: Z7xILlDi7ttyreQoYEy5exOWroI5zA64JjexGbn0MGM=
+text: |
+  ml/analysis/error_analysis.py czyta pliki *_predictions.csv (pliki lub katalogi) i liczy dokladnosc modelu i baseline oraz roznice w pp w podziale na typ etykiety (Known/Ambiguous/NotFound; dla dwoch ostatnich tylko liczebnosc), liczbe galezi, repeat_len (< 21 i >= 21, prog z --repeat_threshold), pokrycie (cov_tie oraz przedzialy cov_ratio_max) i organizm. Skrzyzowania wszystkich organizmow sa laczone, wiec wynik ogolny jest srednia wazona n_junctions. Wynik trafia do --out_csv, a krotkie podsumowanie tekstowe do <out_csv bez .csv>_summary.txt i do logu.

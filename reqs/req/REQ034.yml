@@ -1,0 +1,19 @@
+active: true
+derived: false
+header: |
+  Podzial train/val --split_by
+level: 2.13
+links:
+- CAT002: GP2WXQ6va74slXH3u360EI5bKW5xlyPSUzhNjvVKQmw=
+normative: true
+ref: ''
+references:
+- path: ml/data/splits.py
+  type: file
+- path: ml/data/loader.py
+  type: file
+- path: ml/training/train.py
+  type: file
+reviewed: kblbl_dUrnW57xFjdRpzkPO1oTKOq9dt-0VB2y7XSgI=
+text: |
+  main.py train przyjmuje --split_by {row,node_seq,genome} (domyslnie row). row to dotychczasowy stratyfikowany podzial po wierszach (REQ009), dajacy identyczny zbior train i val jak wczesniej. node_seq i genome to podzialy grupowe: wszystkie wiersze z tym samym node_seq, albo z tego samego pliku CSV (kolumna source_file dodawana przez loader), trafiaja w calosci do train albo do val. Grupy sa losowane z seedem --seed i przenoszone do val, az val ma co najmniej --val_split wierszy; co najmniej jedna grupa zostaje w train. Mniej niz dwie grupy to blad.

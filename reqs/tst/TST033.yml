@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Flagi architektury MV1
+level: 2.12
+links:
+- REQ033: q7nd-fB95Xp3AGTD7zIyBY-APJXp1lqvugYzsMKQTvI=
+normative: true
+ref: ''
+references:
+- path: ml/tests/models/test_mv1.py
+  type: file
+- path: ml/tests/training/test_train_flags.py
+  type: file
+reviewed: 4R9w3ZQWHr3itPmLu62ey-wdRqEOvG7u658ywNcMKMY=
+text: |
+  ml/tests/models/test_mv1.py::test_default_model_matches_legacy_architecture (te same nazwy, wartosci parametrow i wyjscia co kopia starego MV1 przy tym samym seedzie), ::test_default_parameter_counts, ::test_legacy_checkpoint_loads_into_default_model, ::test_encoder_channels, ::test_encoder_channels_rejects_invalid, ::test_encoder_variants_output_embed_dim, ::test_residual_block_skip, ::test_scorer_batchnorm_flag, ::test_hparams_round_trip_through_from_hparams; ml/tests/training/test_train_flags.py::test_tuned_checkpoint_stores_architecture_and_evaluates, ::test_default_checkpoint_hparams_describe_original_model.

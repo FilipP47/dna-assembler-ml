@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Konfiguracja i najlepsza epoka w metrics.json
+level: 4.8
+links:
+- CAT004: ZMdfGXzJMu7pq0Jiymarvl_IK7j5ED8b5BfOsWRnKkE=
+normative: true
+ref: ''
+references:
+- path: ml/training/trainer.py
+  type: file
+- path: ml/training/provenance.py
+  type: file
+reviewed: 8epsZcnogbGpboFraQ9PRnruTaEXDDFuR--fwxPqqNQ=
+text: |
+  <ckpt_dir>/<run_name>_metrics.json zawiera, obok git_commit i git_dirty, klucz config z wartosciami wszystkich flag main.py train (takze --lr_schedule, --warmup_epochs, --width_mult, --n_blocks, --residual, --batchnorm, --split_by) oraz best_epoch (1-based) i best_val, epochs_run, final_train, final_val.

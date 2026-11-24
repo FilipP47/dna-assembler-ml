@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Podzial train/val --split_by
+level: 2.13
+links:
+- REQ034: iwct6iCBKJFPYIFzHNQjLeX-4xG776NR7GcrdDe5Uwk=
+normative: true
+ref: ''
+references:
+- path: ml/tests/data/test_splits.py
+  type: file
+reviewed: 4km19RITzDAAge83lIoNYYmVGZ5E6a6xs4yQGIi9PLk=
+text: |
+  ml/tests/data/test_splits.py::test_row_split_is_the_original_split_dataset, ::test_node_seq_split_keeps_groups_together, ::test_node_seq_split_is_seeded, ::test_loader_adds_source_file, ::test_genome_split_keeps_genomes_together, ::test_genome_split_needs_two_genomes, ::test_group_split_keeps_one_group_in_train, ::test_group_split_null_values_are_separate_groups, ::test_unknown_split_mode_is_rejected.

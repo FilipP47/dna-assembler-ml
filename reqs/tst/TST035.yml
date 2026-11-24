@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Predykcje per skrzyzowanie z ewaluacji
+level: 3.5
+links:
+- REQ035: 7r1opZyEhexfXT8YKnyrMGNj8oooVGnJbUgw1elxvfI=
+normative: true
+ref: ''
+references:
+- path: ml/tests/training/test_evaluate.py
+  type: file
+reviewed: Vh8esonYKkdM4r3XXfIDzpXoBFf2YuqEP1iEG6GzKYA=
+text: |
+  ml/tests/training/test_evaluate.py::test_predictions_written_next_to_json (klucze JSON bez zmian, 12 wierszy z Known, Ambiguous i NotFound), ::test_predictions_match_json_accuracy, ::test_explicit_predictions_path, ::test_baseline_tie_break_and_label_type.

@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Analiza bledow predykcji zero-shot
+level: 3.6
+links:
+- REQ036: Qft8Z2qJf5COlnMs3iJUtjPHpLfezTgF127BW9w7fl4=
+normative: true
+ref: ''
+references:
+- path: ml/tests/analysis/test_error_analysis.py
+  type: file
+reviewed: AbkJSISpXkRd-TIICUIeBUJyY3t8z9CVTqBG6EBqsGM=
+text: |
+  ml/tests/analysis/test_error_analysis.py::test_accuracy_table_buckets (recznie policzone dokladnosci dla dwoch organizmow), ::test_repeat_threshold_is_configurable, ::test_main_writes_csv_and_summary, ::test_missing_input_is_an_error.

@@ -12,6 +12,6 @@ references:
   type: file
 - path: ml/training/train.py
   type: file
-reviewed: 34TR3LZ73FD0s59Sn4qAZdVu7qPc3A_BqMbsqyLeBjE=
+reviewed: x4ErT8TrQRhGzqFl9teE2Z0KrJVAqbe9XvVOS65d-Tc=
 text: |
-  Podzial train/val (split_dataset) jest po junction_id, czyli po wierszach CSV, i odbywa sie przed budowa par, wiec pary jednego wiersza nie trafiaja do dwoch zbiorow.
+  Domyslny podzial train/val (--split_by row, split_dataset) jest po junction_id, czyli po wierszach CSV, i odbywa sie przed budowa par, wiec pary jednego wiersza nie trafiaja do dwoch zbiorow.

@@ -1,0 +1,15 @@
+active: true
+derived: false
+header: |
+  Konfiguracja i najlepsza epoka w metrics.json
+level: 4.8
+links:
+- REQ037: ZuxBcgtEWHuxb-AaW29JT3DN3sk_Nq_Lw_c2LVwXvf8=
+normative: true
+ref: ''
+references:
+- path: ml/tests/training/test_train_flags.py
+  type: file
+reviewed: TNvEK4WgaFVAX9ljAvAnQdrvqPUrI2_1HG_GP6mrUFc=
+text: |
+  ml/tests/training/test_train_flags.py::test_metrics_json_has_full_config_and_best_epoch (config zawiera wszystkie argumenty train, w tym nowe flagi, oraz best_epoch w zakresie 1..epochs_run).

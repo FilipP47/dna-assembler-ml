@@ -1,0 +1,17 @@
+active: true
+derived: false
+header: |
+  Harmonogram LR i liczba epok
+level: 2.11
+links:
+- REQ032: cbnXA4YZNsRFS3zjpUOWczoUKuL_qXeM9Sm-9xXlvcg=
+normative: true
+ref: ''
+references:
+- path: ml/tests/training/test_lr_schedule.py
+  type: file
+- path: ml/tests/training/test_train_flags.py
+  type: file
+reviewed: Jnl8AfeViu_cILaSSCuRqzalNoF2eVeIjwpLLzBdeFE=
+text: |
+  ml/tests/training/test_lr_schedule.py::test_default_trainer_matches_legacy_loop (20 epok z redukcja lr: te same wagi i lr co petla starego Trainera), ::test_scheduled_lr_defaults_leave_lr_to_plateau, ::test_scheduled_lr_warmup_is_linear, ::test_scheduled_lr_constant, ::test_scheduled_lr_cosine_over_200_epochs, ::test_scheduled_lr_cosine_after_warmup, ::test_fit_applies_schedule, ::test_trainer_rejects_invalid_schedule; ml/tests/training/test_train_flags.py::test_new_flags_default_to_original_behaviour, ::test_new_flags_parse, ::test_invalid_flag_values_are_rejected.
