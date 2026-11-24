@@ -51,6 +51,10 @@ def export_to_onnx(args) -> None:
         "cov_feat_dim":      saved_hparams.get("cov_feat_dim",      args.cov_feat_dim),
         "hidden_dim":        saved_hparams.get("hidden_dim",         args.hidden_dim),
     }
+    # Architecture options added later; absent keys mean the original MV1.
+    for key in ("width_mult", "n_blocks", "residual", "scorer_batchnorm"):
+        if key in saved_hparams:
+            hparams[key] = saved_hparams[key]
     logger.info("Model hparams: %s", hparams)
 
     model = Mv1JunctionModel(**hparams)

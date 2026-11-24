@@ -13,6 +13,69 @@ import torch.nn as nn
 from models.base import BaseJunctionModel
 
 
+def encoder_channels(n_blocks: int, width_mult: float, embed_dim: int) -> list[int]:
+    """Return the output channel count of every convolutional block.
+
+    The base widths are 32 for the first block and 64 for every following
+    hidden block; ``width_mult`` scales them. The last block always outputs
+    ``embed_dim`` channels, so ``width_mult`` does not change the embedding
+    size. With the defaults (``n_blocks=3``, ``width_mult=1.0``) this gives
+    ``[32, 64, embed_dim]``, the original MV1 encoder.
+
+    Args:
+        n_blocks: Number of convolutional blocks (>= 1).
+        width_mult: Multiplier for the hidden block widths (> 0).
+        embed_dim: Output channels of the last block.
+
+    Returns:
+        List of ``n_blocks`` channel counts.
+
+    Raises:
+        ValueError: If ``n_blocks < 1`` or ``width_mult <= 0``.
+    """
+    if n_blocks < 1:
+        raise ValueError(f"n_blocks must be >= 1, got {n_blocks}")
+    if width_mult <= 0:
+        raise ValueError(f"width_mult must be > 0, got {width_mult}")
+    hidden = [max(1, round(base * width_mult)) for base in [32] + [64] * (n_blocks - 2)]
+    return hidden[: n_blocks - 1] + [embed_dim]
+
+
+class ResidualConvBlock(nn.Module):
+    """Conv -> ReLU -> BatchNorm block with a skip connection.
+
+    The skip is the identity when the channel count is unchanged and a 1x1
+    convolution otherwise.
+    """
+
+    def __init__(self, in_ch: int, out_ch: int, kernel_size: int):
+        """Initialise the block.
+
+        Args:
+            in_ch: Input channels.
+            out_ch: Output channels.
+            kernel_size: Odd kernel size; padding keeps the length unchanged.
+        """
+        super().__init__()
+        self.body = nn.Sequential(
+            nn.Conv1d(in_ch, out_ch, kernel_size=kernel_size, padding=kernel_size // 2),
+            nn.ReLU(),
+            nn.BatchNorm1d(out_ch),
+        )
+        self.skip = nn.Identity() if in_ch == out_ch else nn.Conv1d(in_ch, out_ch, kernel_size=1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Return ``body(x) + skip(x)``.
+
+        Args:
+            x: Float tensor of shape ``(B, in_ch, length)``.
+
+        Returns:
+            Float tensor of shape ``(B, out_ch, length)``.
+        """
+        return self.body(x) + self.skip(x)
+
+
 class DNASequenceEncoder(nn.Module):
     """Lightweight 1-D CNN that maps a one-hot DNA sequence to a dense embedding.
 
@@ -20,27 +83,50 @@ class DNASequenceEncoder(nn.Module):
     branch candidates.
     """
 
-    def __init__(self, embed_dim: int = 64, dropout: float = 0.3):
+    def __init__(
+        self,
+        embed_dim:  int = 64,
+        dropout:    float = 0.3,
+        width_mult: float = 1.0,
+        n_blocks:   int = 3,
+        residual:   bool = False,
+    ):
         """Initialise the convolutional encoder.
+
+        The first block uses kernel size 5, the others kernel size 3. Each
+        block is Conv -> ReLU -> BatchNorm. With the default arguments the
+        module tree, parameter names and initialisation order are identical
+        to the original three-block MV1 encoder, so old checkpoints load and
+        a seeded model gets the same weights.
 
         Args:
             embed_dim: Number of output channels (embedding dimension).
             dropout: Dropout probability applied after global average pooling.
+            width_mult: Multiplier for the hidden block widths (see
+                :func:`encoder_channels`).
+            n_blocks: Number of convolutional blocks.
+            residual: Wrap every block in a skip connection
+                (:class:`ResidualConvBlock`).
         """
         super().__init__()
-        self.conv_block = nn.Sequential(
-            nn.Conv1d(in_channels=4, out_channels=32, kernel_size=5, padding=2),
-            nn.ReLU(),
-            nn.BatchNorm1d(32),
+        channels = encoder_channels(n_blocks, width_mult, embed_dim)
+        in_channels = [4] + channels[:-1]
+        kernels = [5] + [3] * (n_blocks - 1)
 
-            nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm1d(64),
-
-            nn.Conv1d(in_channels=64, out_channels=embed_dim, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm1d(embed_dim)
-        )
+        if residual:
+            self.conv_block = nn.Sequential(*[
+                ResidualConvBlock(c_in, c_out, k)
+                for c_in, c_out, k in zip(in_channels, channels, kernels)
+            ])
+        else:
+            layers: list[nn.Module] = []
+            for c_in, c_out, k in zip(in_channels, channels, kernels):
+                layers += [
+                    nn.Conv1d(in_channels=c_in, out_channels=c_out, kernel_size=k, padding=k // 2),
+                    nn.ReLU(),
+                    nn.BatchNorm1d(c_out),
+                ]
+            self.conv_block = nn.Sequential(*layers)
         self.pool_drop = nn.Dropout(dropout)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -75,6 +161,10 @@ class Mv1JunctionModel(BaseJunctionModel):
         cov_feat_dim:      int = 6,
         hidden_dim:        int = 64,
         dropout:           float = 0.3,
+        width_mult:        float = 1.0,
+        n_blocks:          int = 3,
+        residual:          bool = False,
+        scorer_batchnorm:  bool = False,
     ):
         """Initialise the MV1 model.
 
@@ -85,6 +175,16 @@ class Mv1JunctionModel(BaseJunctionModel):
                 Pass ``0`` to disable coverage features.
             hidden_dim: Hidden layer width of the scoring MLP.
             dropout: Dropout probability used in CNN encoders and the MLP scorer.
+            width_mult: Multiplier for the hidden convolution widths of both
+                encoders (the embedding size stays ``*_embed_dim``).
+            n_blocks: Number of convolutional blocks per encoder.
+            residual: Use residual convolutional blocks in both encoders.
+            scorer_batchnorm: Add ``BatchNorm1d`` after each hidden ``Linear``
+                of the scorer MLP (Linear -> BatchNorm -> ReLU -> Dropout).
+
+        The defaults reproduce the original MV1 (49 473 parameters with
+        ``cov_feat_dim=0``, 49 857 with ``cov_feat_dim=6``), including
+        parameter names and initialisation order.
         """
         super().__init__()
         self._context_embed_dim = context_embed_dim
@@ -92,23 +192,46 @@ class Mv1JunctionModel(BaseJunctionModel):
         self._cov_feat_dim      = cov_feat_dim
         self._hidden_dim        = hidden_dim
         self._dropout           = dropout
+        self._width_mult        = width_mult
+        self._n_blocks          = n_blocks
+        self._residual          = residual
+        self._scorer_batchnorm  = scorer_batchnorm
 
-        self.context_encoder = DNASequenceEncoder(embed_dim=context_embed_dim, dropout=dropout)
-        self.branch_encoder  = DNASequenceEncoder(embed_dim=branch_embed_dim,  dropout=dropout)
+        encoder_kwargs = {"dropout": dropout, "width_mult": width_mult,
+                          "n_blocks": n_blocks, "residual": residual}
+        self.context_encoder = DNASequenceEncoder(embed_dim=context_embed_dim, **encoder_kwargs)
+        self.branch_encoder  = DNASequenceEncoder(embed_dim=branch_embed_dim,  **encoder_kwargs)
 
         # A single scorer shared across both branches preserves Siamese symmetry:
         # branch_a and branch_b receive identical treatment with identical weights.
         mlp_in_dim = context_embed_dim + branch_embed_dim + cov_feat_dim
 
-        self.scorer = nn.Sequential(
-            nn.Linear(mlp_in_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim // 2, 1)
-        )
+        scorer_layers: list[nn.Module] = []
+        for d_in, d_out in [(mlp_in_dim, hidden_dim), (hidden_dim, hidden_dim // 2)]:
+            scorer_layers.append(nn.Linear(d_in, d_out))
+            if scorer_batchnorm:
+                scorer_layers.append(nn.BatchNorm1d(d_out))
+            scorer_layers += [nn.ReLU(), nn.Dropout(dropout)]
+        scorer_layers.append(nn.Linear(hidden_dim // 2, 1))
+        self.scorer = nn.Sequential(*scorer_layers)
+
+    @classmethod
+    def from_hparams(cls, hparams: dict) -> "Mv1JunctionModel":
+        """Build a model from a checkpoint's ``model_hparams`` dict.
+
+        Keys missing from ``hparams`` (checkpoints saved before a key was
+        added) fall back to the constructor defaults, i.e. the original
+        MV1 architecture.
+
+        Args:
+            hparams: Dict as returned by :meth:`hparams`.
+
+        Returns:
+            An untrained model with the stored architecture.
+        """
+        known = {"context_embed_dim", "branch_embed_dim", "cov_feat_dim", "hidden_dim",
+                 "dropout", "width_mult", "n_blocks", "residual", "scorer_batchnorm"}
+        return cls(**{k: v for k, v in hparams.items() if k in known})
 
     def model_name(self) -> str:
         """Return the model identifier string."""
@@ -119,7 +242,8 @@ class Mv1JunctionModel(BaseJunctionModel):
 
         Returns:
             Dictionary with keys ``context_embed_dim``, ``branch_embed_dim``,
-            ``cov_feat_dim``, and ``hidden_dim``.
+            ``cov_feat_dim``, ``hidden_dim``, ``dropout``, ``width_mult``,
+            ``n_blocks``, ``residual`` and ``scorer_batchnorm``.
         """
         return {
             "context_embed_dim": self._context_embed_dim,
@@ -127,6 +251,10 @@ class Mv1JunctionModel(BaseJunctionModel):
             "cov_feat_dim":      self._cov_feat_dim,
             "hidden_dim":        self._hidden_dim,
             "dropout":           self._dropout,
+            "width_mult":        self._width_mult,
+            "n_blocks":          self._n_blocks,
+            "residual":          self._residual,
+            "scorer_batchnorm":  self._scorer_batchnorm,
         }
 
     def forward(
