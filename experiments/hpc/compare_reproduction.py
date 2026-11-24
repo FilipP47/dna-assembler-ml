@@ -13,11 +13,12 @@ Exits with status 1 when the weighted means differ by more than
 differ.
 
 The default tolerance comes from the observed spread, not from a known noise
-model. Over 4 runs (the original and 3 re-runs) the weighted mean ranged over
-71.57-73.27%, and the largest difference from the reference was +1.29 pp, on
-the same node the original was trained on. With n=4 this is an estimate, and
-the cause of the spread is not established (see
-``docs/RAPORT_transfer_A_B.md``, section 7.8).
+model. Re-runs deviate from the reference by +1.29 pp on h32 (both runs) and
+by -0.4 pp on glasser, and the same code differs by 1.69 pp between the two
+GPUs. Training is deterministic per node, so the n=4 re-runs give only 2
+distinct results; the tolerance is an estimate, not a confidence interval.
+The source of the +1.29 pp shift since the original run is not established
+(see ``docs/RAPORT_transfer_A_B.md``, section 7.8).
 
 Usage (from the repo root)::
 
@@ -39,8 +40,9 @@ logger = logging.getLogger(__name__)
 _HPC_DIR = Path(__file__).resolve().parent
 _DEFAULT_TOLERANCE_PP = 2.0
 _SPREAD_NOTE = (
-    "Tolerance is based on the observed spread over n=4 runs (max +1.29 pp vs "
-    "the reference); the cause of the spread is not established."
+    "Tolerance is based on the observed deviations (+1.29 pp h32, -0.4 pp "
+    "glasser) and the 1.69 pp spread between GPUs; n=4 re-runs with 2 distinct "
+    "results, not a confidence interval."
 )
 
 

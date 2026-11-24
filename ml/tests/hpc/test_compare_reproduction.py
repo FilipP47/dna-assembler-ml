@@ -83,7 +83,7 @@ def test_weighted_mean() -> None:
     ("new_acc", "expected"),
     [
         (0.716, 0),  # -0.4 pp, glasser re-runs
-        (0.733, 0),  # +1.3 pp, h32 re-run
+        (0.733, 0),  # +1.3 pp, h32 re-runs
         (0.745, 1),  # +2.5 pp, outside the default 2 pp
         (0.695, 1),  # -2.5 pp, the tolerance is two-sided
     ],

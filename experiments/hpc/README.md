@@ -192,19 +192,29 @@ konczy sie kodem 1, gdy srednia wazona odbiega od referencji o wiecej niz
 2 pp (`--tolerance`, dawniej `--tolerance_pp`).
 
 Oryginalny trening (job 81587) szedl na h32 (RTX PRO 6000), a ewaluacja
-zero-shot (job 81607) na glasser (RTX 4090). Odtworzenia na glasser (torch
-2.11.0+cu128 z `uv.lock`): joby 94577/94594 daly srednia wazona 71,57%
-(-0,41 pp wzgledem 71,98%) i zwykla 72,24%, a joby 99133/107989 (commit
-fc41b9a, ewaluacja na CPU) 71,58% (-0,39 pp) i 72,25%. Ten sam kod na h32
-(job 99076) dal 73,27% i 73,76%, czyli +1,29 pp, mimo ze oryginal trenowal na
-tym samym wezle. Dwa przebiegi na glasser sa praktycznie identyczne, ale
-przyczyna roznicy wzgledem oryginalu na h32 jest nieustalona (zmiany kodu,
-niedeterminizm GPU, wiazacy limit 50 epok). Tolerancja 2 pp wynika z
-obserwowanego maksimum 1,29 pp przy n=4 przebiegach. Szczegoly i hipotezy w
-`docs/RAPORT_transfer_A_B.md`, sekcja 7.8. Referencja byla
-liczona przed migracja na `uv` (patrz sekcja wyzej), wiec roznica obejmuje
-tez inne wersje pakietow. Dla porownania, powtorzenia z seedami
-123 i 7 (`results/eval_repeats/`) daja 71,16% i 71,99%.
+zero-shot (job 81607) na glasser (RTX 4090). Odtworzenia uzywaly torch
+2.11.0+cu128 z `uv.lock`; joby 99133, 99076 i 108011 szly z commita fc41b9a
+(`git_dirty=False`).
+
+| Joby | Trening / ewaluacja | Zero-shot wazona | Zero-shot prosta | Roznica |
+|---|---|---|---|---|
+| 81587 / 81607 (oryginal) | h32 / glasser | 71,98% | 72,59% | - |
+| 94577 / 94594 | glasser / glasser | 71,57% | 72,24% | -0,41 pp |
+| 99133 / 107989 | glasser / CPU | 71,58% | 72,25% | -0,39 pp |
+| 99076 | h32 / h32 | 73,27% | 73,76% | +1,29 pp |
+| 108011 / 108290 | h32 / CPU | 73,27% | 73,76% | +1,29 pp |
+
+Trening jest deterministyczny w obrebie wezla: dwa przebiegi na h32 (99076,
+108011) i dwa na glasser (94577, 99133) daja te same wyniki, a ewaluacja na CPU
+i GPU rozni sie tylko polem `loss` w szostej cyfrze. Model GPU wplywa na wynik,
+bo ten sam kod daje na glasser 71,58%, a na h32 73,27% (+1,69 pp). Roznica
++1,29 pp miedzy oryginalem z wrzesnia a dzisiejszym przebiegiem na h32 nie
+wynika z GPU (oba treningi na h32). Jej zrodlo jest nieustalone, bo nie ma
+przebiegu na starym srodowisku; hipotezy to zmiany kodu lub zaleznosci przed
+migracja na `uv`. Tolerancja 2 pp obejmuje obserwowane odchylenia (+1,29 pp na
+h32, -0,4 pp na glasser) i rozrzut miedzy GPU (1,69 pp), ale przy n=4
+odtworzeniach z 2 unikalnymi wynikami nie jest przedzialem ufnosci. Szczegoly
+w `docs/RAPORT_transfer_A_B.md`, sekcja 7.8. Dla porownania, powtorzenia z seedami 123 i 7 (`results/eval_repeats/`) daja 71,16% i 71,99%.
 
 ## Test dymny
 
