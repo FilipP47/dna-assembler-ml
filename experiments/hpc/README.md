@@ -206,8 +206,9 @@ zero-shot (job 81607) na glasser (RTX 4090). Odtworzenia uzywaly torch
 
 Trening jest deterministyczny w obrebie wezla: dwa przebiegi na h32 (99076,
 108011) i dwa na glasser (94577, 99133) daja te same wyniki, a ewaluacja na CPU
-i GPU rozni sie tylko polem `loss` w szostej cyfrze. Model GPU wplywa na wynik,
-bo ten sam kod daje na glasser 71,58%, a na h32 73,27% (+1,69 pp). Roznica
+i GPU rozni sie tylko polem `loss` w szostej cyfrze. Oba przebiegi na h32
+osiagaja najlepsza walidacyjna junction accuracy 74,21% w epoce 50 (z 50).
+Model GPU wplywa na wynik, bo ten sam kod daje na glasser 71,58%, a na h32 73,27% (+1,69 pp). Roznica
 +1,29 pp miedzy oryginalem z wrzesnia a dzisiejszym przebiegiem na h32 nie
 wynika z GPU (oba treningi na h32). Jej zrodlo jest nieustalone, bo nie ma
 przebiegu na starym srodowisku; hipotezy to zmiany kodu lub zaleznosci przed

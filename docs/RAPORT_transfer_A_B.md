@@ -259,7 +259,7 @@ oryginalu. Wezel h32 ma GPU RTX PRO 6000, glasser RTX 4090.
 | Odtworzenie 1 | 94577 / 94594 | glasser / glasser | 72,71% (46) | 71,57% | 72,24% | -0,41 pp |
 | Odtworzenie 2 | 99133 / 107989 | glasser / CPU | 72,58% (50) | 71,58% | 72,25% | -0,39 pp |
 | Odtworzenie 3 | 99076 | h32 / h32 | 74,21% (50) | 73,27% | 73,76% | +1,29 pp |
-| Odtworzenie 4 | 108011 / 108290 | h32 / CPU | 74,21% | 73,27% | 73,76% | +1,29 pp |
+| Odtworzenie 4 | 108011 / 108290 | h32 / CPU | 74,21% (50) | 73,27% | 73,76% | +1,29 pp |
 
 Odtworzenia 2, 3 i 4 uruchomiono z commita fc41b9a (`git_dirty=False`).
 Trening trwal 1:04:21 na glasser oraz 1:35:17 i 1:33:39 na h32; oryginalny
@@ -288,7 +288,7 @@ Wnioski z odtworzen:
    - zmiany kodu miedzy wrzesniem a commitem fc41b9a,
    - zmiany wersji zaleznosci przed migracja na `uv` (torch, CUDA, cuDNN),
    - moment wyjscia z plateau przy wiazacym limicie 50 epok (najlepsza epoka
-     to 46-50 w przebiegach z zapisana epoka), ktory wzmacnia kazda z
+     to 46-50 we wszystkich przebiegach), ktory wzmacnia kazda z
      powyzszych drobnych roznic.
 
 Kryterium REQ018 (+/- 2 pp sredniej wazonej) oparto na tym rozrzucie.
