@@ -15,6 +15,11 @@ from data.loader import load_training_csv
 from models.mv1 import Mv1JunctionModel
 from training.device import resolve_device
 from training.metrics import MetricsTracker
+from training.predictions import (
+    build_predictions,
+    default_predictions_path,
+    score_branches,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +30,15 @@ def evaluate_model(args) -> dict:
     Evaluates on the entire CSV (no train/val split) - intended for
     cross-organism evaluation where the model has never seen this organism.
 
+    Per-junction predictions (all label types, see
+    :mod:`training.predictions`) go to ``output_predictions``, or to
+    ``<output_json without .json>_predictions.csv`` when only
+    ``output_json`` is set. The JSON itself is unchanged.
+
     Args:
         args: Namespace with: ``model_path``, ``test_csv``,
-            ``output_json`` (optional), ``context_len``, ``branch_len``,
+            ``output_json`` (optional), ``output_predictions`` (optional),
+            ``context_len``, ``branch_len``,
             ``min_context_len``, ``min_branch_len``, ``batch_size``,
             ``num_workers``, ``device``.
 
@@ -38,12 +49,8 @@ def evaluate_model(args) -> dict:
     checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)
 
     hparams = checkpoint.get("model_hparams", {})
-    model = Mv1JunctionModel(
-        context_embed_dim=hparams.get("context_embed_dim", 64),
-        branch_embed_dim=hparams.get("branch_embed_dim", 64),
-        cov_feat_dim=hparams.get("cov_feat_dim", 6),
-        hidden_dim=hparams.get("hidden_dim", 64),
-    )
+    # Architecture keys absent from older checkpoints fall back to the original MV1.
+    model = Mv1JunctionModel.from_hparams({"cov_feat_dim": 6, **hparams})
     model.load_state_dict(checkpoint["model_state"])
     use_cov = hparams.get("cov_feat_dim", 6) > 0
 
@@ -80,6 +87,7 @@ def evaluate_model(args) -> dict:
 
     criterion = nn.CrossEntropyLoss()
     tracker = MetricsTracker()
+    junction_correct: dict[int, bool] = {}
 
     with torch.no_grad():
         for batch in loader:
@@ -96,6 +104,8 @@ def evaluate_model(args) -> dict:
 
             preds = logits.argmax(dim=1)
             tracker.update(preds, labels, j_ids, loss.item())
+            for jid, ok in zip(j_ids.tolist(), (preds == labels).cpu().tolist()):
+                junction_correct[jid] = junction_correct.get(jid, True) and bool(ok)
 
     metrics = tracker.compute()
 
@@ -130,5 +140,30 @@ def evaluate_model(args) -> dict:
         with open(out_path, "w") as f:
             json.dump(result, f, indent=2)
         logger.info("Evaluation results saved to %s", out_path)
+
+    pred_path = getattr(args, "output_predictions", None)
+    if pred_path is None and output_json:
+        pred_path = default_predictions_path(output_json)
+    if pred_path:
+        # All junctions, including Ambiguous and NotFound, with the same length filters.
+        df_all, _ = load_training_csv(
+            csv_path=csv_path,
+            min_context_len=getattr(args, "min_context_len", 10),
+            min_branch_len=getattr(args, "min_branch_len", 5),
+            only_labeled=False,
+        )
+        scores = score_branches(
+            model,
+            df_all,
+            context_len=getattr(args, "context_len", 100),
+            branch_len=getattr(args, "branch_len", 100),
+            use_cov=use_cov,
+            device=device,
+        )
+        predictions = build_predictions(df_all, scores, junction_correct, organism)
+        pred_path = Path(pred_path)
+        pred_path.parent.mkdir(parents=True, exist_ok=True)
+        predictions.write_csv(pred_path)
+        logger.info("Per-junction predictions (%d rows) saved to %s", predictions.height, pred_path)
 
     return result
