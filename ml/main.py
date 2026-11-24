@@ -59,6 +59,11 @@ def build_parser() -> argparse.ArgumentParser:
     g_data.add_argument("--min_context_len", type=int, default=10,   help="Discard junctions with shorter context")
     g_data.add_argument("--min_branch_len",  type=int, default=5,    help="Discard junctions with shorter branches")
     g_data.add_argument("--val_split",       type=float, default=0.15, help="Fraction of data for validation")
+    g_data.add_argument("--split_by",        choices=["row", "node_seq", "genome"], default="row",
+                        help="Train/val split unit: 'row' (stratified rows; val is optimistic because "
+                             "rows sharing node_seq land on both sides), 'node_seq' (all rows with the "
+                             "same node_seq on one side), 'genome' (whole source CSVs on one side; "
+                             "needs a directory of >= 2 CSVs)")
     g_data.add_argument("--augment",         action="store_true",    help="Enable reverse-complement augmentation")
     g_data.add_argument("--no_cov",          dest="use_cov", action="store_false",
                         help="Disable coverage features (cov_feat_dim=0)")
@@ -73,13 +78,22 @@ def build_parser() -> argparse.ArgumentParser:
     g_model.add_argument("--embed_dim",  type=int,   default=64,  help="CNN output embedding size")
     g_model.add_argument("--hidden_dim", type=int,   default=64,  help="MLP hidden layer size")
     g_model.add_argument("--dropout",    type=float, default=0.3, help="Dropout rate in CNN encoders and MLP scorer")
+    g_model.add_argument("--width_mult", type=float, default=1.0, help="Multiplier for the hidden conv widths (32, 64); the embedding size stays --embed_dim")
+    g_model.add_argument("--n_blocks",   type=int,   default=3,   help="Number of conv blocks per encoder (first kernel 5, others 3)")
+    g_model.add_argument("--residual",   action="store_true",     help="Add skip connections to the conv blocks (1x1 conv when widths differ)")
+    g_model.add_argument("--batchnorm",  action="store_true",     help="Add BatchNorm1d after each hidden Linear of the scorer MLP (the encoder always has BatchNorm)")
 
     g_opt = p_train.add_argument_group("training")
     g_opt.add_argument("--batch_size",    type=int,   default=64,   help="Batch size")
-    g_opt.add_argument("--epochs",        type=int,   default=50,   help="Maximum number of epochs")
+    g_opt.add_argument("--epochs",        type=int,   default=50,   help="Maximum number of epochs (also the end of the cosine schedule)")
     g_opt.add_argument("--lr",            type=float, default=1e-3, help="Adam learning rate")
     g_opt.add_argument("--weight_decay",  type=float, default=1e-4, help="Adam weight decay (L2 regularisation)")
     g_opt.add_argument("--early_stop",    type=int,   default=10,   help="Early-stopping patience (epochs)")
+    g_opt.add_argument("--lr_schedule",   choices=["constant", "cosine", "plateau"], default="plateau",
+                       help="LR schedule after warm-up: 'plateau' = ReduceLROnPlateau on val junction "
+                            "accuracy (patience 5, factor 0.5), 'cosine' = cosine decay to 0 at --epochs, "
+                            "'constant' = --lr throughout")
+    g_opt.add_argument("--warmup_epochs", type=int,   default=0,    help="Linear LR warm-up epochs (lr * epoch / warmup_epochs)")
     g_opt.add_argument("--seed",        type=int,   default=42,   help="Random seed for splits")
     g_opt.add_argument("--device",        type=str,   default=None,               help="Device: cuda / mps / cpu (auto-detect if None)")
     g_opt.add_argument("--num_workers",   type=int,   default=0,                  help="DataLoader worker processes")
@@ -109,6 +123,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval.add_argument("--model_path",     required=True, help="Path to .pt checkpoint")
     p_eval.add_argument("--test_csv",       required=True, help="Path to evaluation CSV")
     p_eval.add_argument("--output_json",    default=None,  help="Write metrics to this JSON file")
+    p_eval.add_argument("--output_predictions", default=None,
+                        help="Write per-junction predictions to this CSV. Default: "
+                             "<output_json without .json>_predictions.csv when --output_json is set")
     p_eval.add_argument("--context_len",    type=int, default=100, help="Max context length (bp)")
     p_eval.add_argument("--branch_len",     type=int, default=100, help="Max branch length (bp)")
     p_eval.add_argument("--min_context_len",type=int, default=10,  help="Min context length filter")

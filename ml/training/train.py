@@ -15,7 +15,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from data.dataset import JunctionDataset, collate_junction_batch
-from data.loader import load_training_csv, split_dataset
+from data.loader import load_training_csv
+from data.splits import split_train_val
 from models.mv1 import Mv1JunctionModel
 from training.trainer import Trainer
 from training.metrics import TrainingHistory
@@ -47,7 +48,10 @@ def train_model(args) -> TrainingHistory:
             ``seed``, ``context_len``, ``branch_len``, ``augment``,
             ``use_cov``, ``batch_size``, ``num_workers``, ``embed_dim``,
             ``hidden_dim``, ``ckpt_dir``, ``lr``, ``epochs``,
-            ``early_stop``, ``device``, ``wandb``, ``wandb_project``).
+            ``early_stop``, ``device``, ``wandb``, ``wandb_project``,
+            ``split_by``, ``lr_schedule``, ``warmup_epochs``,
+            ``width_mult``, ``n_blocks``, ``residual``, ``batchnorm``).
+            Missing tuning attributes fall back to the original behaviour.
 
     Returns:
         :class:`~training.metrics.TrainingHistory` with per-epoch metrics.
@@ -72,12 +76,11 @@ def train_model(args) -> TrainingHistory:
     )
     stats.print()
 
-    df_train, df_val, _ = split_dataset(
+    df_train, df_val = split_train_val(
         df=df,
+        split_by=getattr(args, "split_by", "row"),
         val_split=args.val_split,
-        test_split=0.0,
         seed=args.seed,
-        stratify=True,
     )
 
     train_dataset = JunctionDataset(
@@ -119,6 +122,10 @@ def train_model(args) -> TrainingHistory:
         cov_feat_dim=cov_dim,
         hidden_dim=args.hidden_dim,
         dropout=getattr(args, "dropout", 0.3),
+        width_mult=getattr(args, "width_mult", 1.0),
+        n_blocks=getattr(args, "n_blocks", 3),
+        residual=getattr(args, "residual", False),
+        scorer_batchnorm=getattr(args, "batchnorm", False),
     )
 
     if getattr(args, "init_checkpoint", None):
@@ -144,6 +151,7 @@ def train_model(args) -> TrainingHistory:
         "use_cov":     args.use_cov,
         "batch_size":  args.batch_size,
         "val_split":   args.val_split,
+        "split_by":    getattr(args, "split_by", "row"),
         "seed":        args.seed,
         "train_samples": len(train_dataset),
         "val_samples":   len(val_dataset),
@@ -165,6 +173,8 @@ def train_model(args) -> TrainingHistory:
         wandb_config=wandb_config,
         run_name=getattr(args, "run_name", None),
         provenance=provenance,
+        lr_schedule=getattr(args, "lr_schedule", "plateau"),
+        warmup_epochs=getattr(args, "warmup_epochs", 0),
     )
 
     history = trainer.fit(train_loader, val_loader)
