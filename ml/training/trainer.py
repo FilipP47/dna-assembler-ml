@@ -5,7 +5,9 @@ Accepts any model implementing :class:`~models.base.BaseJunctionModel`.
 Training strategy:
 
 - Loss: CrossEntropy on ``(sim_a, sim_b)`` treated as logits.
-- Optimiser: Adam with ``ReduceLROnPlateau`` scheduler.
+- Optimiser: Adam. LR schedule ``plateau`` (``ReduceLROnPlateau`` on val
+  junction accuracy, the default), ``cosine`` (cosine decay to 0 over the
+  remaining epochs) or ``constant``; optional linear warm-up before it.
 - Early stopping on validation ``junction_accuracy``.
 - Best-model checkpoint saved automatically.
 - Optional Weights & Biases logging.
@@ -16,6 +18,7 @@ from __future__ import annotations
 import dataclasses
 import json
 import logging
+import math
 import time
 from pathlib import Path
 from typing import Any
@@ -29,6 +32,46 @@ from training.device import resolve_device
 from training.metrics import EpochMetrics, MetricsTracker, TrainingHistory
 
 logger = logging.getLogger(__name__)
+
+LR_SCHEDULES = ("constant", "cosine", "plateau")
+
+
+def scheduled_lr(
+    base_lr: float, epoch: int, epochs: int, schedule: str, warmup_epochs: int
+) -> float | None:
+    """Return the learning rate to set before ``epoch``, or ``None`` to keep it.
+
+    During warm-up (epochs ``1..warmup_epochs``) the rate rises linearly to
+    ``base_lr``: ``base_lr * epoch / warmup_epochs``. After warm-up:
+
+    - ``constant``: ``base_lr``.
+    - ``cosine``: ``base_lr * 0.5 * (1 + cos(pi * t / T))`` with
+      ``t = epoch - warmup_epochs - 1`` and ``T = epochs - warmup_epochs``,
+      so the first post-warm-up epoch uses ``base_lr``.
+    - ``plateau``: ``None``; ``ReduceLROnPlateau`` owns the rate (on the
+      first post-warm-up epoch the rate is reset to ``base_lr``).
+
+    Args:
+        base_lr: Initial learning rate (``--lr``).
+        epoch: Current epoch, 1-based.
+        epochs: Total number of epochs (``--epochs``).
+        schedule: One of :data:`LR_SCHEDULES`.
+        warmup_epochs: Number of linear warm-up epochs (``0`` disables it).
+
+    Returns:
+        The learning rate, or ``None`` when the optimiser's rate is left as is.
+    """
+    if epoch <= warmup_epochs:
+        return base_lr * epoch / warmup_epochs
+    if schedule == "constant":
+        return base_lr
+    if schedule == "cosine":
+        t = epoch - warmup_epochs - 1
+        total = max(epochs - warmup_epochs, 1)
+        return base_lr * 0.5 * (1.0 + math.cos(math.pi * t / total))
+    if warmup_epochs > 0 and epoch == warmup_epochs + 1:
+        return base_lr
+    return None
 
 
 class Trainer:
@@ -57,6 +100,8 @@ class Trainer:
         wandb_config:   dict | None = None,
         run_name:       str | None = None,
         provenance:     dict[str, Any] | None = None,
+        lr_schedule:    str   = "plateau",
+        warmup_epochs:  int   = 0,
     ):
         """Initialise the trainer, optimiser, scheduler, and optional W&B run.
 
@@ -67,8 +112,10 @@ class Trainer:
             weight_decay: L2 regularisation coefficient for Adam (``weight_decay``).
             epochs: Maximum number of training epochs.
             early_stop: Number of epochs without improvement before stopping.
-            lr_patience: Epochs without improvement before LR is reduced.
-            lr_factor: Multiplicative factor for LR reduction.
+            lr_patience: Epochs without improvement before LR is reduced
+                (``plateau`` schedule only).
+            lr_factor: Multiplicative factor for LR reduction (``plateau``
+                schedule only).
             grad_clip: Max gradient norm for clipping (disabled when ``<= 0``).
             device: Compute device (``"cuda"``, ``"mps"``, or ``"cpu"``).
                 Auto-detected when ``None``.
@@ -79,7 +126,18 @@ class Trainer:
             provenance: Optional dict with ``git_commit``, ``git_dirty`` and
                 ``config`` (see :mod:`training.provenance`), stored in every
                 checkpoint and in the final metrics JSON.
+            lr_schedule: ``"plateau"`` (default, the original behaviour),
+                ``"cosine"`` or ``"constant"``; see :func:`scheduled_lr`.
+            warmup_epochs: Linear warm-up epochs before the schedule.
+                ``ReduceLROnPlateau`` is not stepped during warm-up.
+
+        Raises:
+            ValueError: Unknown ``lr_schedule`` or negative ``warmup_epochs``.
         """
+        if lr_schedule not in LR_SCHEDULES:
+            raise ValueError(f"lr_schedule must be one of {LR_SCHEDULES}, got {lr_schedule!r}")
+        if warmup_epochs < 0:
+            raise ValueError(f"warmup_epochs must be >= 0, got {warmup_epochs}")
         self.model     = model
         self.ckpt_dir  = Path(checkpoint_dir)
         self.epochs    = epochs
@@ -88,6 +146,9 @@ class Trainer:
         self.use_wandb = use_wandb
         self.run_name  = run_name
         self.provenance = provenance or {}
+        self.base_lr = learning_rate
+        self.lr_schedule = lr_schedule
+        self.warmup_epochs = warmup_epochs
 
         self.device = resolve_device(device)
         self.model.to(self.device)
@@ -97,10 +158,12 @@ class Trainer:
 
         self.optimizer = optim.Adam(model.parameters(), lr=learning_rate,
                                     weight_decay=weight_decay)
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer, mode="max",
-            patience=lr_patience, factor=lr_factor,
-        )
+        self.scheduler = None
+        if lr_schedule == "plateau":
+            self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                self.optimizer, mode="max",
+                patience=lr_patience, factor=lr_factor,
+            )
         self.criterion = nn.CrossEntropyLoss()
 
         if use_wandb:
@@ -129,6 +192,8 @@ class Trainer:
                     "early_stop":   self.early_stop_patience,
                     "learning_rate": lr,
                     "grad_clip":    self.grad_clip,
+                    "lr_schedule":  self.lr_schedule,
+                    "warmup_epochs": self.warmup_epochs,
                     **hparams,
                     **extra_config,
                 },
@@ -220,6 +285,13 @@ class Trainer:
         for epoch in range(1, self.epochs + 1):
             t0 = time.time()
 
+            new_lr = scheduled_lr(
+                self.base_lr, epoch, self.epochs, self.lr_schedule, self.warmup_epochs
+            )
+            if new_lr is not None:
+                for group in self.optimizer.param_groups:
+                    group["lr"] = new_lr
+
             train_metrics = self._run_epoch(train_loader, training=True)
             val_metrics   = self._run_epoch(val_loader,   training=False)
 
@@ -235,7 +307,8 @@ class Trainer:
             if self.use_wandb:
                 self._wandb_log(epoch, train_metrics, val_metrics, lr)
 
-            self.scheduler.step(val_metrics.junction_accuracy)
+            if self.scheduler is not None and epoch > self.warmup_epochs:
+                self.scheduler.step(val_metrics.junction_accuracy)
 
             if val_metrics.junction_accuracy > best_val_junc_acc:
                 best_val_junc_acc = val_metrics.junction_accuracy
