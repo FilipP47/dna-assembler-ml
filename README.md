@@ -46,6 +46,33 @@ Srodowisko Pythona (`ml/`): `cd ml && uv sync`. Na maszynie z GPU:
 Uruchomienie skryptu Pythona: `cd ml && uv run python3 <sciezka>`.
 Testy: `cd ml && uv run pytest`.
 
+## Trening i ewaluacja modelu
+
+Trening uruchamia `cd ml && uv run python3 main.py train ...`; pelna lista flag
+jest w `uv run python3 main.py train --help`. Flagi strojenia (`--lr_schedule`,
+`--warmup_epochs`, `--width_mult`, `--n_blocks`, `--residual`, `--batchnorm`,
+`--split_by`) maja wartosci domyslne odpowiadajace dotychczasowemu treningowi,
+wiec bez nich wyniki sa takie same jak wczesniej. Pelna konfiguracja przebiegu
+(wszystkie flagi), commit i najlepsza epoka trafiaja do
+`<ckpt_dir>/<run_name>_metrics.json`.
+
+**Walidacja przy `--split_by row` (domyslnie) jest zawyzona.** Podzial idzie po
+wierszach CSV, a w `cerevisiae_training.csv` 71% oznaczonych wierszy dzieli
+`node_seq` z innym wierszem (REQ022), wiec prawie identyczne przyklady trafiaja
+jednoczesnie do train i val. Val accuracy, early stopping i wybor najlepszego
+checkpointu sa przez to optymistyczne. `--split_by node_seq` trzyma wszystkie
+wiersze z tym samym `node_seq` po jednej stronie, a `--split_by genome` (dla
+katalogu z wieloma CSV) caly genom. Wyniki zero-shot na osobnych genomach
+testowych nie sa tym dotkniete.
+
+`main.py evaluate --output_json <plik>.json` zapisuje obok predykcje per
+skrzyzowanie w `<plik>_predictions.csv` (wszystkie skrzyzowania, takze
+Ambiguous i NotFound; format JSON bez zmian). Rozbicie dokladnosci modelu i
+baseline max-coverage wedlug liczby galezi, `repeat_len`, pokrycia, typu
+etykiety i organizmu daje
+`uv run python3 analysis/error_analysis.py <katalog_z_predykcjami> --out_csv <plik>.csv`
+(tabela CSV i podsumowanie `<plik>_summary.txt`).
+
 ## Wymagania i sledzenie
 
 Wymagania sa w Doorstopie, w trzech dokumentach w `reqs/`: `CAT` (kategorie),
