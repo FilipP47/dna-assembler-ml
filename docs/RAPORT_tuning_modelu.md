@@ -21,6 +21,7 @@ Kontynuacja `docs/RAPORT_transfer_A_B.md`. Tamten raport pokazal transfer miedzy
 - **Stale ustawienia:** `--context_len 150`, `--no_cov`, `--augment`.
 - **Wezel:** wszystkie przebiegi na glasser (RTX 4090). Wynik zalezy od modelu GPU (sekcja 7.8 raportu transferu), dlatego porownujemy tylko przebiegi z jednego wezla.
 - **Seedy:** 42 dla wszystkich konfiguracji (etap 1), 123 i 7 dla trzech wybranych (etap 2). Trening jest deterministyczny dla danego seeda, wezla i kodu: base z seedem 42 daje 71,57%, tyle samo co odtworzenie 94577 z raportu transferu.
+- **Kod:** wszystkie przebiegi etapow 1-2 uruchomiono z commita 4e63f03 (`git_dirty=False`). Wyniki sprawdzono niezaleznym skryptem: metryki z plikow JSON zgadzaja sie z predykcjami per junction co do 0,01 pp, kazdy przebieg ma 10 plikow (po jednym na genom testowy) i 6345 junctionow.
 - **Skrypty:** `experiments/hpc/tune_array.sh` i `tasks/tune.sh` (konfiguracje x seedy w jednej tablicy zadan SLURM), agregacja `aggregate_tuning.py`. Skrypty sa na HPC i nie ma ich jeszcze w repozytorium. Wyniki per przebieg: `results/tuning/<konfiguracja>_s<seed>/`.
 
 ## 2. Zmiany w kodzie
@@ -69,9 +70,11 @@ Zero-shot, grupa A farthest, glasser.
 
 | Konfiguracja | Zero-shot (mean +/- std) | Min-max | Roznica vs base | Najlepsze epoki | Czas treningu |
 |---|---|---|---|---|---|
-| cos150_deep_res | 79,28% +/- 0,23pp | 79,02-79,46% | +7,95 pp | 142-149 | ok. 3 h 16 min |
-| cos150 | 76,52% +/- 0,10pp | 76,44-76,63% | +5,20 pp | 139-141 | ok. 3 h 10 min |
-| base | 71,33% +/- 0,89pp | 70,34-72,07% | 0 | 44-48 | ok. 1 h |
+| cos150_deep_res | 79,28% +/- 0,23pp | 79,02-79,46% | +7,95 pp | 142-149 | 3 h 15-17 min |
+| cos150 | 76,52% +/- 0,10pp | 76,44-76,63% | +5,20 pp | 139-141 | 3 h 06-11 min |
+| base | 71,33% +/- 0,89pp | 70,34-72,07% | 0 | 44-48 | 1 h 02 min |
+
+Czas treningu dotyczy glasser. cos150_w4 (tylko etap 1) trenowal 3 h 23 min.
 
 Wzgledem baseline max-coverage (56,33%): cos150_deep_res +22,95 pp, cos150 +20,19 pp, base +15,00 pp.
 
@@ -97,7 +100,7 @@ Prawie wszystkie oceniane junctiony maja dwie galezie. 69% z nich to niemal remi
 
 ## 6. Wnioski
 
-1. Najwiekszy zysk daje dluzszy trening z harmonogramem cosine (+5,2 pp). Base konczylo po 44-48 epokach przy wczesnym zatrzymaniu.
+1. Najwiekszy zysk daje dluzszy trening z harmonogramem cosine (+5,2 pp). Base dobiega do limitu 50 epok we wszystkich seedach (najlepsze epoki 44-48 z 50), wiec to limit epok, a nie wczesne zatrzymanie, konczy jego trening.
 2. Cztery bloki z polaczeniami resztkowymi dokladaja +2,8 pp ponad cos150.
 3. Szerszy model (`--width_mult` 2 i 4) nie poprawia wyniku (jeden seed, w granicach szumu).
 4. Rozrzut miedzy seedami jest maly dla dluzszych konfiguracji (0,10-0,23 pp) i wiekszy dla base (0,89 pp), wiec roznice 2,8-5,2 pp nie sa szumem.
