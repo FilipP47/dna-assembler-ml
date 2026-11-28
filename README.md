@@ -21,6 +21,9 @@ Podzial odpowiedzialnosci miedzy jezykami:
 - `docs/RAPORT_transfer_A_B.md` - transfer miedzy genomami. Trening na wielu szczepach
   E. coli bije baseline o ok. 15 pp na nowych szczepach tego samego gatunku
   (grupa A); efekt nie rozciaga sie na cala rodzine Enterobacteriaceae (grupa B).
+- `docs/RAPORT_tuning_modelu.md` - strojenie MV1 na grupie A (harmonogram LR,
+  glebokosc, szerokosc). Dluzszy trening z cosine i 4 bloki resztkowe daja
+  ok. 79% zero-shot wobec ok. 71% przed strojeniem.
 - `experiments/group_a/README.md` - jak odtworzyc eksperyment grupy A.
 
 Glowny wynik pracy, transfer miedzy genomami w grupach A i B, opisuje
