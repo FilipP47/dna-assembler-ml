@@ -74,7 +74,7 @@ Zero-shot, grupa A farthest, glasser.
 | cos150 | 76,52% +/- 0,10pp | 76,44-76,63% | +5,20 pp | 139-141 | 3 h 06-11 min |
 | base | 71,33% +/- 0,89pp | 70,34-72,07% | 0 | 44-48 | 1 h 02 min |
 
-Czas treningu dotyczy glasser. cos150_w4 (tylko etap 1) trenowal 3 h 23 min.
+Czas treningu dotyczy glasser. cos150_w4 (tylko etap 1) trenowal 3 h 23 min. Roznice w tabeli liczono z niezaokraglonych srednich, stad np. +5,20 pp przy srednich 76,52% i 71,33%.
 
 Wzgledem baseline max-coverage (56,33%): cos150_deep_res +22,95 pp, cos150 +20,19 pp, base +15,00 pp.
 
@@ -92,11 +92,16 @@ Checkpoint 108011 (h32, zero-shot 73,27%), czyli model sprzed strojenia. Skrot z
 | 4 galezie (30) | 46,67% | 46,67% |
 | repeat_len < 21 (6206) | 73,36% | 56,20% |
 | repeat_len >= 21 (139) | 69,06% | 61,87% |
+| cov_ratio_max 0,00-0,50 (100) | 57,00% | 41,00% |
 | cov_ratio_max 0,50-0,60 (4356) | 73,26% | 49,82% |
 | cov_ratio_max 0,60-0,75 (1136) | 70,16% | 65,58% |
 | cov_ratio_max 0,75-1,00 (753) | 80,21% | 82,07% |
 
 Prawie wszystkie oceniane junctiony maja dwie galezie. 69% z nich to niemal remis pokrycia, gdzie baseline jest rzutem moneta, a model korzysta z sekwencji. Jedyny przedzial, w ktorym baseline wygrywa, to `cov_ratio_max >= 0,75` (12% ocenianych).
+
+Przedzialy `cov_ratio_max` roznia sie od przedzialow w `docs/RAPORT_transfer_A_B.md` (sekcje 5.2 i 5.4), wiec tych tabel nie mozna porownywac bin do binu. Cztery przedzialy powyzej obejmuja razem wszystkie 6345 ocenianych junctionow.
+
+Wynik dla `repeat_len >= 21` dotyczy checkpointu 108011 (h32, 73,27%). W raporcie transferu (oryginalny checkpoint z wrzesnia) ten przedzial ma 51,80% przy tym samym n=139. Proba jest mala (blad standardowy ok. 4 pp), a wynik zalezy od genomu, wiec tak duza roznica miedzy checkpointami jest mozliwa.
 
 ## 6. Wnioski
 
